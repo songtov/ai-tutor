@@ -33,7 +33,7 @@ testpaths = ["tests"]
 [tool.poe.tasks]
 run = "uvicorn ai_tutor_api.main:app --reload"
 lint = [{ cmd = "ruff check" }, { cmd = "ruff format --check" }]
-format = "ruff format"
+format = [{ cmd = "ruff check --fix" }, { cmd = "ruff format" }]
 typecheck = "mypy src tests"
 test = "pytest"
 check = ["lint", "typecheck", "test"]

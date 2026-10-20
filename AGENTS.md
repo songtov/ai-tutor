@@ -56,17 +56,17 @@ Don't invent commands. If something is missing here, read the app's config files
 
 ### `apps/api`
 
-Python 3.14, managed with [uv](https://docs.astral.sh/uv/). Tasks run with [Poe the Poet](https://poethepoet.natn.io/) (`uv tool install poethepoet`). Run them from the repo root or from `apps/api`:
+Python 3.14, managed with [uv](https://docs.astral.sh/uv/). Tasks run with [Poe the Poet](https://poethepoet.natn.io/) (`uv tool install poethepoet`). Run these from `apps/api`:
 
-- Install: `uv sync` (in `apps/api`, before the first task)
+- Install: `uv sync`
 - Run the backend: `poe run` (http://127.0.0.1:8000, reloads on change)
 - Lint (ruff check and format check): `poe lint`
-- Format: `poe format`
+- Format (ruff: import sort, autofix, Black-style format): `poe format`
 - Type check: `poe typecheck`
 - Test: `poe test`
 - All checks (lint, type check, test): `poe check`
 
-Tasks are defined in `[tool.poe.tasks]` in `apps/api/pyproject.toml`. The root `pyproject.toml` only includes them and runs them in `apps/api/.venv`; it is not a Python project.
+Tasks are defined in `[tool.poe.tasks]` in `apps/api/pyproject.toml`.
 
 ### `apps/web`
 
