@@ -48,6 +48,7 @@ Core domain concepts: Topic, LearningCycle (and its stages), Material, Quiz / At
 - Python: `snake_case` for functions and variables, `PascalCase` for classes. Prefer the standard library, and justify every new dependency.
 - TypeScript / Next.js: follow framework defaults.
 - Keep changes small and focused (PRs under ~2000 lines). Don't add speculative abstractions or configuration.
+- Never put agent session links (such as `Claude-Session:` trailers or `claude.ai/code/session_...` URLs) in commit messages, PR descriptions, or issues. This repo is public.
 
 ## Commands
 
