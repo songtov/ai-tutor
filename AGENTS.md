@@ -30,7 +30,8 @@ Core domain concepts: Topic, LearningCycle (and its stages), Material, Quiz / At
 - A single setting, `APP_ENV=local|remote`, selects the adapters at startup.
 - Database: SQLite file (local) or Supabase Postgres (remote).
 - Storage: local filesystem (local) or S3-compatible, such as Cloudflare R2 or AWS S3 (remote).
-- Database and storage are accessed only through ports. Feature code must never branch on `APP_ENV`.
+- Markdown vault: a folder on disk (local) or a download (remote).
+- Database, storage, and the vault are accessed only through ports. Feature code must never branch on `APP_ENV`.
 - Every feature must work in local mode without any cloud account.
 
 ## Product rules
@@ -39,6 +40,8 @@ Core domain concepts: Topic, LearningCycle (and its stages), Material, Quiz / At
 - Every learning record belongs to a topic.
 - Topics form a tree of any depth, with `prerequisite` and `related` links and clusters.
 - Prefer prompting the learner to recall or explain over handing them the answer.
+- Notes and study history are also written to a Markdown vault (Obsidian-compatible) as a one-way copy. The database stays the source of truth. See [docs/domain.md](docs/domain.md#markdown-vault).
+- Learners pick a learning method (a preset stage order). In strict mode they follow the order but can still skip a stage.
 
 ## Conventions
 

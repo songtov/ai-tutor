@@ -26,6 +26,7 @@ The person learning. Local mode has a single default learner; remote mode has on
 
 - `id`
 - `settings.default_method`: the learning method new cycles start with (see [Learning methods](#learning-methods)).
+- `settings.strict_order`: whether cycles follow the stage order strictly (see [LearningCycle](#learningcycle)).
 
 ## Topic
 
@@ -55,7 +56,13 @@ One pass through a topic. A topic can have many cycles over time: the first time
 
 - `id`, `topic_id`, `started_at`, `completed_at`
 - `stages`: the ordered list of stages for this cycle, copied from the learning method when the cycle starts. Changing settings later does not change existing cycles.
-- `current_index`: position in `stages`. The learner may move forward or back freely; the order is a guide.
+- `current_index`: position in `stages`.
+- `skipped`: indexes of stages the learner skipped.
+
+Moving between stages depends on `settings.strict_order`:
+
+- Off (default): the learner may move forward or back freely.
+- On: the learner moves through stages in order. They can still skip the current stage; the skip is recorded in `skipped`.
 
 Stages:
 
@@ -120,13 +127,36 @@ When the topic should be recalled again. One per topic.
 
 ## Learning methods
 
-A learning method is a named stage order. The learner picks a default in settings and can override it per cycle. Methods are presets defined in code; custom orders can come later.
+A learning method is a named stage order. The learner picks a default in settings and can override it per cycle. Methods are presets defined in code; learners don't define their own.
 
 | Method | Stages | Why |
 | --- | --- | --- |
 | `standard` | chat → materials → quiz → feedback → notes → review → next_topic | The default cycle. |
 | `pretest` | chat → quiz → feedback → materials → quiz → feedback → notes → review → next_topic | Trying to recall before studying improves later learning (pretesting effect), and shows the learner what they already know. |
 | `review` | quiz → feedback → notes → review | Spaced review of a topic already learned. |
+
+## Markdown vault
+
+Notes and study history are also written as Markdown files, so the learner can browse them on their own in Obsidian or any editor.
+
+- The database is the source of truth. The vault is a one-way copy, rewritten whenever an artifact changes. Edits made in the vault are not read back.
+- Local mode writes the vault to a folder on disk. Remote mode offers it as a download.
+- Files are written through a port, like database and storage.
+
+Layout:
+
+```
+vault/
+└── Math/
+    ├── Math.md
+    └── Calculus/
+        ├── Calculus.md
+        └── cycles/
+            └── 2026-10-20 standard.md
+```
+
+- **Topic file** (`<Topic>.md`): description and notes. Frontmatter holds the clusters as `tags`. Links become wikilinks: `Prerequisites: [[Algebra]]`, `Related: [[Mechanics]]`.
+- **Cycle file** (`cycles/<date> <method>.md`): the chat, the materials (picked ones marked), each attempt with its photos embedded, and its feedback, in stage order.
 
 ## Rules
 
@@ -143,6 +173,6 @@ A learning method is a named stage order. The learner picks a default in setting
 - **Deleting and moving topics.** Archive instead of delete? What happens to children and links when a topic is archived or moved?
 - **Note edits.** Notes are editable. Do we keep previous versions to satisfy "nothing vanishes"?
 - **Confidence rating.** Ask the learner how confident they are before showing feedback, to train self-assessment?
-- **Strict mode.** Should a learner be able to lock the stage order (no skipping ahead to materials before the quiz)?
-- **Custom methods.** Let learners define their own stage orders, or only choose presets?
 - **Review algorithm.** Fixed intervals, SM-2, or FSRS (#10).
+- **Two-way vault sync.** Read edits made in Obsidian back into the database?
+- **Duplicate topic names.** Topic files are named by title, so two sibling topics with the same title would collide.
