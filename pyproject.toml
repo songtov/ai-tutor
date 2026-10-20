@@ -1,0 +1,3 @@
+[tool.poe]
+executor = { type = "virtualenv", location = "apps/api/.venv" }
+include = [{ path = "apps/api/pyproject.toml", cwd = "apps/api" }]
