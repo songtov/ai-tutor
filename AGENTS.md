@@ -56,13 +56,17 @@ Don't invent commands. If something is missing here, read the app's config files
 
 ### `apps/api`
 
-Python 3.14, managed with [uv](https://docs.astral.sh/uv/). Run these from `apps/api`:
+Python 3.14, managed with [uv](https://docs.astral.sh/uv/). Tasks run with [Poe the Poet](https://poethepoet.natn.io/) (`uv tool install poethepoet`, or prefix with `uv run`). Run these from `apps/api`:
 
 - Install: `uv sync`
-- Run: `uv run uvicorn ai_tutor_api.main:app --reload`
-- Lint and format: `uv run ruff check` and `uv run ruff format`
-- Type check: `uv run mypy src tests`
-- Test: `uv run pytest`
+- Run the backend: `poe run` (http://127.0.0.1:8000, reloads on change)
+- Lint (ruff check and format check): `poe lint`
+- Format: `poe format`
+- Type check: `poe typecheck`
+- Test: `poe test`
+- All checks (lint, type check, test): `poe check`
+
+Tasks are defined in `[tool.poe.tasks]` in `pyproject.toml`.
 
 ### `apps/web`
 
