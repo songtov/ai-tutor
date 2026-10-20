@@ -72,7 +72,7 @@ ai-tutor/
 
 ## Status
 
-Early design stage. There is no runnable code yet. Setup instructions will be added once `apps/web` and `apps/api` are scaffolded.
+Early stage. `apps/api` is scaffolded with only a health check; `apps/web` is not started yet. For setup and commands, see [AGENTS.md](AGENTS.md#commands).
 
 ## License
 

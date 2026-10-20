@@ -52,7 +52,21 @@ Core domain concepts: Topic, LearningCycle (and its stages), Material, Quiz / At
 
 ## Commands
 
-TBD. They will be added when each app is scaffolded. Don't invent commands. Read each app's config files (`package.json`, `pyproject.toml`) instead.
+Don't invent commands. If something is missing here, read the app's config files (`package.json`, `pyproject.toml`).
+
+### `apps/api`
+
+Python 3.14, managed with [uv](https://docs.astral.sh/uv/). Run these from `apps/api`:
+
+- Install: `uv sync`
+- Run: `uv run uvicorn ai_tutor_api.main:app --reload`
+- Lint and format: `uv run ruff check` and `uv run ruff format`
+- Type check: `uv run mypy src tests`
+- Test: `uv run pytest`
+
+### `apps/web`
+
+TBD. Added when the app is scaffolded.
 
 ## Verification
 
