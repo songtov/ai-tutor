@@ -73,3 +73,7 @@ ai-tutor/
 ## Status
 
 Early design stage. There is no runnable code yet. Setup instructions will be added once `apps/web` and `apps/api` are scaffolded.
+
+## License
+
+[MIT](LICENSE)
