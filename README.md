@@ -46,6 +46,7 @@ The next topic is suggested from this structure.
 - **Learner-first.** Every feature has to help someone learn. AI is a helper, not the product.
 - **Nothing vanishes.** Chats, materials, quiz answers, photos, feedback, and notes are all saved.
 - **Active recall over passive reading.** Ask the learner before telling them.
+- **Yours to keep.** Notes and study history are also written as plain Markdown, so you can browse them in Obsidian or any editor.
 
 ## Architecture
 
@@ -57,6 +58,7 @@ ai-tutor runs locally (self-hosted or development) and remotely (hosted SaaS) wi
 | Backend  | FastAPI            | FastAPI on Cloud Run                   |
 | Database | SQLite file        | Supabase (Postgres)                    |
 | Storage  | Local filesystem   | S3-compatible (Cloudflare R2 / AWS S3) |
+| Markdown | Folder on disk     | Download                               |
 
 ## Repo layout
 
