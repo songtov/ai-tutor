@@ -72,7 +72,7 @@ ai-tutor/
 
 ## Status
 
-Early stage. `apps/api` and `apps/web` are scaffolded; the web app only shows the API health status. For setup and commands, see [AGENTS.md](AGENTS.md#commands).
+Early stage. `apps/api` is scaffolded with only a health check; `apps/web` has the main screens running on mock data. For setup and commands, see [AGENTS.md](AGENTS.md#commands).
 
 ## License
 
