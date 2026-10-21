@@ -1,26 +1,85 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@custom-variant dark (@media (prefers-color-scheme: dark));
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+:root {
+  --paper: #f6f8fb;
+  --surface: #ffffff;
+  --ink: #1b2238;
+  --muted: #5b647d;
+  --rule: #dce2ec;
+  --pen: #2e46c8;
+  --pen-soft: #e6eafb;
+  --highlight: #ffe45c;
+  --on-highlight: #1b2238;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --paper: #12161f;
+    --surface: #1a1f2b;
+    --ink: #e4e8f1;
+    --muted: #9aa3b8;
+    --rule: #2c3342;
+    --pen: #8fa2ff;
+    --pen-soft: #232a45;
+    --highlight: #e2c640;
+    --on-highlight: #12161f;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@theme inline {
+  --color-paper: var(--paper);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-rule: var(--rule);
+  --color-pen: var(--pen);
+  --color-pen-soft: var(--pen-soft);
+  --color-highlight: var(--highlight);
+  --color-on-highlight: var(--on-highlight);
+  --font-sans: var(--font-atkinson);
+  --font-serif: var(--font-literata);
+}
+
+@layer base {
+  body {
+    background: var(--paper);
+    color: var(--ink);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--pen);
+    outline-offset: 2px;
+  }
+}
+
+/* A highlighter stroke: marks gaps and anything due. */
+.highlight {
+  background-image: linear-gradient(
+    to bottom,
+    transparent 12%,
+    var(--highlight) 12%,
+    var(--highlight) 90%,
+    transparent 90%
+  );
+  color: var(--on-highlight);
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  padding-inline: 0.2em;
+}
+
+/* Ruled paper for the blank quiz. Line height must match --line. */
+.ruled {
+  --line: 2rem;
+  line-height: var(--line);
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent calc(var(--line) - 1px),
+    var(--rule) calc(var(--line) - 1px),
+    var(--rule) var(--line)
+  );
+  background-attachment: local;
+  background-position: 0 0.4rem;
 }
