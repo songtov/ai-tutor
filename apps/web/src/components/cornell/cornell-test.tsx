@@ -6,6 +6,8 @@ import { scheduleReview, submitAttempt } from "@/app/actions";
 import type { Feedback, NoteDoc } from "@/lib/api";
 import { noteStatements } from "@/lib/notes";
 
+import { CORNELL_COLS } from "./cornell-note";
+
 const INTERVALS = [
   { days: 1, label: "Tomorrow", hint: "I barely remembered" },
   { days: 3, label: "In 3 days", hint: "Some gaps" },
@@ -43,19 +45,15 @@ export function CornellTest({
           : `Your notes are covered. Answer each cue from memory.${uncued ? ` ${uncued} ${uncued === 1 ? "paragraph has" : "paragraphs have"} no cue, so ${uncued === 1 ? "it isn't" : "they aren't"} tested.` : ""}`}
       </p>
 
-      <div className="rounded-lg border border-rule bg-surface">
-        <div className="hidden border-b border-rule text-xs text-muted sm:grid sm:grid-cols-[minmax(0,1fr)_minmax(10rem,15rem)]">
-          <span className="px-5 py-2">{feedback ? "Your answer, then your note" : "Your answer"}</span>
-          <span className="border-l border-rule px-4 py-2">Cues</span>
-        </div>
+      <div>
         {cues.map((cue) => {
           const result = results.find((r) => r.cueId === cue.id);
           return (
-            <div key={cue.id} className="flex flex-col border-b border-rule last:border-0 sm:grid sm:grid-cols-[minmax(0,1fr)_minmax(10rem,15rem)]">
-              <div className="flex flex-col gap-3 px-5 py-3">
+            <div key={cue.id} className={`grid ${CORNELL_COLS}`}>
+              <div className="flex flex-col gap-3 border-b border-rule py-3 pr-4 md:pr-8">
                 {feedback ? (
                   <>
-                    <p className="font-serif text-lg text-pen">{answers[cue.id]?.trim() || "(no answer)"}</p>
+                    <p className="font-serif text-base text-pen md:text-lg">{answers[cue.id]?.trim() || "(no answer)"}</p>
                     {result && (
                       <ul className="flex flex-col gap-1.5 border-l-2 border-rule pl-3 text-sm">
                         {result.known.map((k) => (
@@ -77,11 +75,12 @@ export function CornellTest({
                     value={answers[cue.id] ?? ""}
                     onChange={(e) => setAnswers({ ...answers, [cue.id]: e.target.value })}
                     rows={3}
-                    className="ruled field-sizing-content min-h-24 w-full resize-none bg-transparent font-serif text-lg text-pen outline-none"
+                    placeholder="From memory…"
+                    className="ruled field-sizing-content min-h-24 w-full resize-none bg-transparent font-serif text-base text-pen outline-none placeholder:text-muted/60 md:text-lg"
                   />
                 )}
               </div>
-              <div className="order-first px-5 pt-3 text-sm font-semibold leading-snug sm:order-none sm:border-l sm:border-rule sm:px-4 sm:py-3">
+              <div className="border-b border-l border-rule py-3 pl-3 text-xs leading-snug font-semibold md:pl-5 md:text-sm">
                 {cue.question}
               </div>
             </div>

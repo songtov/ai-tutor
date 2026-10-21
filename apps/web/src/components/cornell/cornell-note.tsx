@@ -8,6 +8,9 @@ import { noteStatements } from "@/lib/notes";
 
 const newId = (prefix: string) => `${prefix}-${crypto.randomUUID()}`;
 
+// The Cornell split: notes on the left, a cue column about a third wide on the right.
+export const CORNELL_COLS = "grid-cols-[minmax(0,1fr)_32%] md:grid-cols-[minmax(0,1fr)_15rem]";
+
 function CueCell({
   doc,
   block,
@@ -37,7 +40,7 @@ function CueCell({
           onChange={(e) => setCues(doc.cues.map((c) => (c.id === cue.id ? { ...c, question: e.target.value } : c)))}
           onBlur={(e) => !e.target.value.trim() && setCues(doc.cues.filter((c) => c.id !== cue.id))}
           rows={1}
-          className="field-sizing-content w-full resize-none bg-transparent text-sm font-semibold leading-snug outline-none"
+          className="field-sizing-content w-full resize-none bg-transparent text-xs leading-snug font-semibold outline-none md:text-sm"
         />
         {cue.origin === "ai" && (
           <span title="Suggested by AI, accepted by you" className="text-xs text-muted">
@@ -50,8 +53,8 @@ function CueCell({
 
   if (suggestion) {
     return (
-      <div className="flex flex-col gap-1.5 text-sm">
-        <span className="italic text-muted">✦ {suggestion.question}</span>
+      <div className="flex flex-col gap-1.5 text-xs md:text-sm">
+        <span className="text-muted italic">✦ {suggestion.question}</span>
         <span className="flex gap-3 text-xs font-semibold">
           <button
             type="button"
@@ -86,7 +89,7 @@ function CueCell({
           setAdding(false);
         }}
         onKeyDown={(e) => e.key === "Enter" && !e.nativeEvent.isComposing && (e.preventDefault(), e.currentTarget.blur())}
-        className="field-sizing-content w-full resize-none bg-transparent text-sm font-semibold leading-snug outline-none placeholder:font-normal placeholder:text-muted"
+        className="field-sizing-content w-full resize-none bg-transparent text-xs leading-snug font-semibold outline-none placeholder:font-normal placeholder:text-muted md:text-sm"
       />
     );
   }
@@ -95,9 +98,9 @@ function CueCell({
     <button
       type="button"
       onClick={() => setAdding(true)}
-      className="text-sm text-muted sm:opacity-0 sm:group-focus-within/row:opacity-100 sm:group-hover/row:opacity-100 sm:focus:opacity-100"
+      className="text-xs text-muted/70 hover:text-pen md:text-sm md:opacity-0 md:group-focus-within/row:opacity-100 md:group-hover/row:opacity-100 md:focus:opacity-100"
     >
-      + Add a cue
+      + Cue
     </button>
   );
 }
@@ -108,8 +111,6 @@ export function CornellNote({
   suggestions,
   onChange,
   onDismissSuggestion,
-  onSuggest,
-  suggesting,
   onAsk,
 }: {
   doc: NoteDoc;
@@ -117,8 +118,6 @@ export function CornellNote({
   suggestions: CueSuggestion[];
   onChange: (doc: NoteDoc) => void;
   onDismissSuggestion: (blockId: string) => void;
-  onSuggest: () => void;
-  suggesting: boolean;
   onAsk: (quote: string) => void;
 }) {
   const [editingId, setEditingId] = useState<string | null>(doc.blocks.length === 1 && !doc.blocks[0].text ? doc.blocks[0].id : null);
@@ -142,26 +141,10 @@ export function CornellNote({
   };
 
   return (
-    <div ref={sheetRef} onMouseUp={onMouseUp} className="relative rounded-lg border border-rule bg-surface">
-      <div className="flex justify-between border-b border-rule text-xs text-muted sm:grid sm:grid-cols-[minmax(0,1fr)_minmax(10rem,15rem)]">
-        <span className="px-5 py-2">Notes</span>
-        <span className="flex items-center justify-between gap-2 px-4 py-2 sm:border-l sm:border-rule">
-          <span className="hidden sm:inline">Cues</span>
-          <button
-            type="button"
-            onClick={onSuggest}
-            disabled={suggesting}
-            title="Suggest questions for paragraphs without a cue"
-            className="font-semibold text-pen hover:underline disabled:opacity-40"
-          >
-            ✦ Suggest
-          </button>
-        </span>
-      </div>
-
+    <div ref={sheetRef} onMouseUp={onMouseUp} className="relative">
       {doc.blocks.map((block, i) => (
-        <div key={block.id} className="group/row sm:grid sm:grid-cols-[minmax(0,1fr)_minmax(10rem,15rem)]">
-          <div className="px-5 py-2.5">
+        <div key={block.id} className={`group/row grid ${CORNELL_COLS}`}>
+          <div className="py-1.5 pr-4 md:pr-8">
             {editingId === block.id ? (
               <textarea
                 autoFocus
@@ -192,7 +175,7 @@ export function CornellNote({
                     setEditingId(doc.blocks[Math.max(0, i - 1)].id);
                   }
                 }}
-                className="field-sizing-content min-h-8 w-full resize-none bg-transparent font-serif text-lg leading-relaxed outline-none placeholder:text-muted/70"
+                className="field-sizing-content min-h-8 w-full resize-none bg-transparent font-serif text-base leading-relaxed outline-none placeholder:text-muted/70 md:text-lg"
               />
             ) : (
               <div
@@ -205,12 +188,12 @@ export function CornellNote({
                 {block.text.trim() ? (
                   <NoteView body={block.text} index={index} />
                 ) : (
-                  <span className="font-serif text-lg text-muted/70">Write here…</span>
+                  <span className="font-serif text-base text-muted/70 md:text-lg">Write here…</span>
                 )}
               </div>
             )}
           </div>
-          <div className="mb-3 ml-5 border-l-2 border-pen-soft px-3 py-1 empty:hidden sm:m-0 sm:border-l sm:border-rule sm:px-4 sm:py-3 sm:empty:block">
+          <div className="border-l border-rule py-2 pl-3 md:pl-5">
             <CueCell
               doc={doc}
               block={block}
@@ -222,28 +205,34 @@ export function CornellNote({
         </div>
       ))}
 
-      <button
-        type="button"
-        onClick={() => {
-          const next = { id: newId("b"), text: "" };
-          setBlocks([...doc.blocks, next]);
-          setEditingId(next.id);
-        }}
-        className="w-full px-5 py-2 text-left text-sm text-muted hover:text-pen"
-      >
-        + Add a paragraph
-      </button>
+      <div className={`grid ${CORNELL_COLS}`}>
+        <div className="py-3 pr-4">
+          <button
+            type="button"
+            onClick={() => {
+              const next = { id: newId("b"), text: "" };
+              setBlocks([...doc.blocks, next]);
+              setEditingId(next.id);
+            }}
+            className="text-sm text-muted hover:text-pen"
+          >
+            + Paragraph
+          </button>
+        </div>
+        <div className="min-h-16 border-l border-rule" />
+      </div>
 
-      <div className="flex flex-col gap-1 border-t-2 border-rule px-5 py-4">
-        <label htmlFor="summary" className="text-xs text-muted">
-          Summary: the whole note in two or three sentences, in your own words
+      <div className="flex flex-col gap-1 border-t border-rule pt-4">
+        <label htmlFor="summary" className="text-sm font-semibold text-muted">
+          Summary
         </label>
         <textarea
           id="summary"
           value={doc.summary}
           onChange={(e) => onChange({ ...doc, summary: e.target.value })}
+          placeholder="The whole note in two or three sentences, in your own words."
           rows={2}
-          className="field-sizing-content min-h-12 w-full resize-none bg-transparent font-serif text-lg leading-relaxed outline-none"
+          className="field-sizing-content min-h-12 w-full resize-none bg-transparent font-serif text-base leading-relaxed outline-none placeholder:text-muted/70 md:text-lg"
         />
       </div>
 

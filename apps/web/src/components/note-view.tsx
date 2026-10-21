@@ -66,7 +66,7 @@ export function NoteView({ body, index }: { body: string; index: NoteIndex }) {
     }
     const heading = line.match(/^(#{1,3})\s+(.*)/);
     if (heading) {
-      const size = heading[1].length === 1 ? "text-2xl" : heading[1].length === 2 ? "text-xl" : "text-lg";
+      const size = heading[1].length === 1 ? "text-xl md:text-2xl" : heading[1].length === 2 ? "text-lg md:text-xl" : "text-base md:text-lg";
       blocks.push(
         <h2 key={i} className={`mt-2 font-serif font-semibold ${size}`}>
           {inline(heading[2], index)}
@@ -122,5 +122,5 @@ export function NoteView({ body, index }: { body: string; index: NoteIndex }) {
       </p>,
     );
   }
-  return <div className="flex flex-col gap-4 font-serif text-lg leading-relaxed">{blocks}</div>;
+  return <div className="flex flex-col gap-4 font-serif text-base leading-relaxed md:text-lg">{blocks}</div>;
 }

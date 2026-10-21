@@ -61,57 +61,60 @@ export function NoteWorkspace(props: {
   };
 
   return (
-    <div className="mx-auto flex max-w-5xl flex-col gap-5">
-      <header className="flex flex-col gap-3">
-        <div className="flex flex-wrap items-baseline justify-between gap-3">
-          <h1 className="font-serif text-4xl font-semibold tracking-tight">{topic.title}</h1>
-          <span className="text-xs text-muted">{saved ? `Saved. Edited ${formatDate(topic.updatedAt)}` : "Saving…"}</span>
+    <div className="mx-auto flex max-w-4xl flex-col gap-6">
+      <header className="flex flex-col gap-3 border-b border-rule pb-3">
+        <h1 className="font-serif text-3xl font-semibold tracking-tight md:text-4xl">{topic.title}</h1>
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted">
+          {props.review ? (
+            <span className={due ? "highlight" : undefined}>Review {dueLabel(props.review.dueAt).toLowerCase()}</span>
+          ) : (
+            <span>Not tested yet</span>
+          )}
+          {lastTest?.feedback && (
+            <span>
+              Last test {formatDate(lastTest.attempt.createdAt)}:{" "}
+              {lastTest.feedback.results.reduce((n, r) => n + r.missing.length, 0)} gaps
+            </span>
+          )}
+          <span className="ml-auto text-xs">{saved ? "Saved" : "Saving…"}</span>
         </div>
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-          {!testing && (
+        {!testing && (
+          <nav aria-label="Note tools" className="-ml-2 flex flex-wrap items-center gap-1 text-sm">
             <button
               type="button"
               disabled={doc.cues.length === 0}
               title={doc.cues.length === 0 ? "Add a cue first: Test me asks you the cues" : undefined}
               onClick={() => setTesting(true)}
-              className="rounded-md bg-pen px-4 py-2 text-sm font-semibold text-surface hover:opacity-90 disabled:opacity-40"
+              className="rounded-md bg-pen px-3 py-1.5 font-semibold text-surface hover:opacity-90 disabled:opacity-40"
             >
               Test me
             </button>
-          )}
-          <span className="text-sm">
-            {props.review ? (
-              <span className={due ? "highlight" : "text-muted"}>Review {dueLabel(props.review.dueAt).toLowerCase()}</span>
-            ) : (
-              <span className="text-muted">Not tested yet</span>
-            )}
-            {lastTest?.feedback && !testing && (
-              <span className="text-muted">
-                {" "}
-                Last test {formatDate(lastTest.attempt.createdAt)}:{" "}
-                {lastTest.feedback.results.reduce((n, r) => n + r.missing.length, 0)} gaps.
-              </span>
-            )}
-          </span>
-          {!testing && (
-            <div className="ml-auto flex gap-1">
-              {(["materials", "questions", "links"] as const).map((tab) => (
-                <button
-                  key={tab}
-                  type="button"
-                  aria-pressed={drawer === tab}
-                  onClick={() => setDrawer(drawer === tab ? null : tab)}
-                  className={`rounded-md px-3 py-1.5 text-sm capitalize ${
-                    drawer === tab ? "bg-pen-soft font-semibold text-pen" : "text-muted hover:bg-pen-soft hover:text-ink"
-                  }`}
-                >
-                  {tab}
-                  {counts[tab] > 0 && <span className="ml-1 text-xs">{counts[tab]}</span>}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+            <button
+              type="button"
+              disabled={suggesting}
+              onClick={() => startSuggest(async () => setSuggestions(await suggestCues(topic.id)))}
+              title="Suggest questions for paragraphs without a cue"
+              className="rounded-md px-2 py-1.5 text-pen hover:bg-pen-soft disabled:opacity-40"
+            >
+              ✦ Suggest cues
+            </button>
+            <span aria-hidden className="mx-1 h-4 w-px bg-rule" />
+            {(["materials", "questions", "links"] as const).map((tab) => (
+              <button
+                key={tab}
+                type="button"
+                aria-pressed={drawer === tab}
+                onClick={() => setDrawer(drawer === tab ? null : tab)}
+                className={`rounded-md px-2 py-1.5 capitalize ${
+                  drawer === tab ? "bg-pen-soft font-semibold text-pen" : "text-muted hover:bg-pen-soft hover:text-ink"
+                }`}
+              >
+                {tab}
+                {counts[tab] > 0 && <span className="ml-1 text-xs">{counts[tab]}</span>}
+              </button>
+            ))}
+          </nav>
+        )}
       </header>
 
       {testing ? (
@@ -130,8 +133,6 @@ export function NoteWorkspace(props: {
           suggestions={suggestions}
           onChange={setDoc}
           onDismissSuggestion={(blockId) => setSuggestions(suggestions.filter((s) => s.blockId !== blockId))}
-          onSuggest={() => startSuggest(async () => setSuggestions(await suggestCues(topic.id)))}
-          suggesting={suggesting}
           onAsk={(text) => {
             setQuote(text);
             setDrawer("questions");
