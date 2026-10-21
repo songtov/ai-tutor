@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
 
-import { saveNote, suggestCues } from "@/app/actions";
+import { renameNote, saveNote, suggestCues } from "@/app/actions";
 import { CornellNote } from "@/components/cornell/cornell-note";
 import { CornellTest } from "@/components/cornell/cornell-test";
 import type { NoteIndex } from "@/components/note-view";
@@ -31,7 +31,10 @@ export function NoteWorkspace(props: {
   const [quote, setQuote] = useState<string | null>(null);
   const [suggestions, setSuggestions] = useState<CueSuggestion[]>([]);
   const [saved, setSaved] = useState(true);
+  const [title, setTitle] = useState(topic.title);
+  const [titleError, setTitleError] = useState<string | null>(null);
   const [suggesting, startSuggest] = useTransition();
+  const [, startRename] = useTransition();
   const lastSaved = useRef(JSON.stringify(doc));
 
   // Autosave, like any note app. Each save keeps the previous version.
@@ -63,7 +66,29 @@ export function NoteWorkspace(props: {
   return (
     <div className="mx-auto flex max-w-4xl flex-col gap-6">
       <header className="flex flex-col gap-3 border-b border-rule pb-3">
-        <h1 className="font-serif text-3xl font-semibold tracking-tight md:text-4xl">{topic.title}</h1>
+        <h1 className="sr-only">{title}</h1>
+        <input
+          aria-label="Note title"
+          value={title}
+          onChange={(e) => {
+            setTitle(e.target.value);
+            setTitleError(null);
+          }}
+          onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
+          onBlur={() => {
+            const next = title.trim();
+            if (!next || next === topic.title) return setTitle(topic.title);
+            startRename(async () => {
+              const error = await renameNote(topic.id, next);
+              if (error) {
+                setTitleError(error);
+                setTitle(topic.title);
+              }
+            });
+          }}
+          className="w-full bg-transparent font-serif text-3xl font-semibold tracking-tight outline-none md:text-4xl"
+        />
+        {titleError && <p className="text-sm text-red-600 dark:text-red-400">{titleError}</p>}
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted">
           {props.review ? (
             <span className={due ? "highlight" : undefined}>Review {dueLabel(props.review.dueAt).toLowerCase()}</span>

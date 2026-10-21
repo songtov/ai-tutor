@@ -123,6 +123,12 @@ export function CornellNote({
   const [editingId, setEditingId] = useState<string | null>(doc.blocks.length === 1 && !doc.blocks[0].text ? doc.blocks[0].id : null);
   const [selection, setSelection] = useState<{ text: string; top: number; left: number } | null>(null);
   const sheetRef = useRef<HTMLDivElement>(null);
+  // Where the caret should land when a paragraph opens for editing.
+  const caret = useRef<{ id: string; pos: number } | null>(null);
+  const focusBlock = (id: string, pos: number) => {
+    caret.current = { id, pos };
+    setEditingId(id);
+  };
 
   const setBlocks = (blocks: NoteBlock[], cues = doc.cues) => onChange({ ...doc, blocks, cues });
 
@@ -153,26 +159,55 @@ export function CornellNote({
                 placeholder={i === 0 ? "Write what you understand, in your own words. [[Link]] notes and add #hashtags." : ""}
                 onChange={(e) => setBlocks(doc.blocks.map((b) => (b.id === block.id ? { ...b, text: e.target.value } : b)))}
                 onBlur={() => setEditingId(null)}
-                onKeyDown={(e) => {
-                  const el = e.currentTarget;
-                  const atEnd = el.selectionStart === el.value.length;
-                  // A blank line ends the paragraph and starts the next one.
-                  if (e.key === "Enter" && !e.nativeEvent.isComposing && atEnd && el.value.endsWith("\n")) {
-                    e.preventDefault();
-                    const next = { id: newId("b"), text: "" };
-                    const blocks = doc.blocks.flatMap((b) =>
-                      b.id === block.id ? [{ ...b, text: b.text.replace(/\n+$/, "") }, next] : [b],
-                    );
-                    setBlocks(blocks);
-                    setEditingId(next.id);
+                ref={(el) => {
+                  if (el && caret.current?.id === block.id) {
+                    el.setSelectionRange(caret.current.pos, caret.current.pos);
+                    caret.current = null;
                   }
-                  if (e.key === "Backspace" && el.value === "" && doc.blocks.length > 1) {
+                }}
+                onKeyDown={(e) => {
+                  if (e.nativeEvent.isComposing) return;
+                  const el = e.currentTarget;
+                  const pos = el.selectionStart;
+                  const collapsed = pos === el.selectionEnd;
+                  const plain = !(e.metaKey || e.ctrlKey || e.altKey || e.shiftKey);
+                  // A blank line splits the paragraph at the caret, like pressing Enter twice in a document.
+                  if (e.key === "Enter" && collapsed && el.value[pos - 1] === "\n") {
                     e.preventDefault();
-                    setBlocks(
-                      doc.blocks.filter((b) => b.id !== block.id),
-                      doc.cues.filter((c) => c.blockId !== block.id),
+                    const next = { id: newId("b"), text: el.value.slice(pos).replace(/^\n+/, "") };
+                    const blocks = doc.blocks.flatMap((b) =>
+                      b.id === block.id ? [{ ...b, text: el.value.slice(0, pos).replace(/\n+$/, "") }, next] : [b],
                     );
-                    setEditingId(doc.blocks[Math.max(0, i - 1)].id);
+                    focusBlock(next.id, 0);
+                    setBlocks(blocks);
+                  }
+                  // Backspace at the start joins this paragraph onto the previous one, cue included.
+                  if (e.key === "Backspace" && collapsed && pos === 0 && i > 0) {
+                    e.preventDefault();
+                    const prev = doc.blocks[i - 1];
+                    const joined = prev.text && block.text ? `${prev.text}\n${block.text}` : prev.text + block.text;
+                    const prevCue = doc.cues.find((c) => c.blockId === prev.id);
+                    const own = doc.cues.find((c) => c.blockId === block.id);
+                    const cues = !own
+                      ? doc.cues
+                      : prevCue
+                        ? doc.cues
+                            .filter((c) => c !== own)
+                            .map((c) => (c === prevCue ? { ...c, question: `${c.question}\n${own.question}` } : c))
+                        : doc.cues.map((c) => (c === own ? { ...c, blockId: prev.id } : c));
+                    focusBlock(prev.id, prev.text.length);
+                    setBlocks(
+                      doc.blocks.flatMap((b) => (b.id === block.id ? [] : b.id === prev.id ? [{ ...b, text: joined }] : [b])),
+                      cues,
+                    );
+                  }
+                  if (e.key === "ArrowUp" && plain && collapsed && !el.value.slice(0, pos).includes("\n") && i > 0) {
+                    e.preventDefault();
+                    focusBlock(doc.blocks[i - 1].id, doc.blocks[i - 1].text.length);
+                  }
+                  if (e.key === "ArrowDown" && plain && collapsed && !el.value.slice(pos).includes("\n") && i < doc.blocks.length - 1) {
+                    e.preventDefault();
+                    focusBlock(doc.blocks[i + 1].id, 0);
                   }
                 }}
                 className="field-sizing-content min-h-8 w-full resize-none bg-transparent font-serif text-base leading-relaxed outline-none placeholder:text-muted/70 md:text-lg"
@@ -181,7 +216,9 @@ export function CornellNote({
               <div
                 data-note-text
                 onClick={(e) => {
-                  if (!(e.target as HTMLElement).closest("a") && !window.getSelection()?.toString()) setEditingId(block.id);
+                  if (!(e.target as HTMLElement).closest("a") && !window.getSelection()?.toString()) {
+                    focusBlock(block.id, block.text.length);
+                  }
                 }}
                 className="min-h-8 cursor-text"
               >

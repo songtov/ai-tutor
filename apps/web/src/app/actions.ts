@@ -47,3 +47,13 @@ export async function askQuestion(topicId: string, quote: string | null, questio
   await api.askQuestion(topicId, quote, question);
   refresh();
 }
+
+export async function renameNote(topicId: string, title: string): Promise<string | null> {
+  try {
+    await api.renameTopic(topicId, title);
+  } catch (error) {
+    return error instanceof Error ? error.message : "Couldn't rename the note.";
+  }
+  refresh();
+  return null;
+}

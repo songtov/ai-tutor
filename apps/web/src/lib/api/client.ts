@@ -15,6 +15,8 @@ export interface ApiClient {
   getTopic(id: string): Promise<Topic | null>;
   findTopicByTitle(title: string): Promise<Topic | null>;
   createTopic(title: string): Promise<Topic>;
+  // Also rewrites [[Old title]] links in other notes.
+  renameTopic(topicId: string, title: string): Promise<Topic>;
   // Keeps the previous blocks, cues, and summary as a NoteRevision.
   saveNote(topicId: string, doc: NoteDoc): Promise<Topic>;
   // Questions the AI proposes for blocks that have no cue. Not saved until the learner accepts one.

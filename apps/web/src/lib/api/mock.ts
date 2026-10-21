@@ -248,6 +248,22 @@ export const mockApi: ApiClient = {
     revisions.push({ id: newId("r"), topicId: created.id, blocks, cues, summary, createdAt: at(0) });
     return created;
   },
+  async renameTopic(topicId, title) {
+    const topic = find(topics, (t) => t.id === topicId);
+    const clash = await this.findTopicByTitle(title);
+    if (clash && clash.id !== topicId) throw new Error(`A note named "${title}" already exists.`);
+    const old = topic.title;
+    topic.title = title.trim();
+    const pattern = new RegExp(`\\[\\[${old.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?=[\\]|#])`, "gi");
+    const linksToOld = new RegExp(pattern.source, "i");
+    for (const other of topics) {
+      if (other.blocks.some((b) => linksToOld.test(b.text))) {
+        const blocks = other.blocks.map((b) => ({ ...b, text: b.text.replace(pattern, `[[${topic.title}`) }));
+        await this.saveNote(other.id, { blocks, cues: other.cues, summary: other.summary });
+      }
+    }
+    return { ...topic };
+  },
   async saveNote(topicId, doc) {
     const topic = find(topics, (t) => t.id === topicId);
     const before = JSON.stringify([topic.blocks, topic.cues, topic.summary]);
