@@ -4,7 +4,6 @@ import { notFound } from "next/navigation";
 import { startCycle } from "@/app/actions";
 import { api } from "@/lib/api";
 import { dueLabel } from "@/lib/format";
-import { pathLabel } from "@/lib/topics";
 
 export default async function ClusterPage(props: PageProps<"/clusters/[id]">) {
   const { id } = await props.params;
@@ -45,7 +44,6 @@ export default async function ClusterPage(props: PageProps<"/clusters/[id]">) {
                     {topic.title}
                   </Link>
                   <p className="text-sm text-muted">
-                    {pathLabel(topic, topics) && `${pathLabel(topic, topics)}. `}
                     {review ? (
                       <span className={isDue ? "highlight" : undefined}>{dueLabel(review.dueAt)}</span>
                     ) : (

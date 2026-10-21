@@ -5,7 +5,7 @@ import { StageProgress } from "@/components/stage-progress";
 import { StartTopic } from "@/components/start-topic";
 import { api } from "@/lib/api";
 import { dueLabel, formatDate, STAGE_LABELS } from "@/lib/format";
-import { pathLabel } from "@/lib/topics";
+import { sortByTitle } from "@/lib/topics";
 
 export default async function TodayPage() {
   const [topics, clusters, dueReviews, activeCycles] = await Promise.all([
@@ -27,7 +27,10 @@ export default async function TodayPage() {
         <h1 className="sr-only">Today</h1>
         <p className="text-muted">{today}</p>
         <StartTopic
-          topics={topics.map((t) => ({ ...t, path: pathLabel(t, topics) }))}
+          topics={sortByTitle(topics).map((t) => ({
+            ...t,
+            tags: clusters.filter((c) => c.topicIds.includes(t.id)).map((c) => c.name),
+          }))}
           tagNames={clusters.map((c) => c.name)}
         />
       </header>

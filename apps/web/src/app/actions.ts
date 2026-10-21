@@ -13,8 +13,10 @@ export async function startCycle(topicId: string, method: MethodName) {
   redirect(cyclePath(topicId, cycle.id));
 }
 
-export async function startNewTopic(title: string, parentId: string | null) {
-  const topic = await api.createTopic(title, parentId);
+// A topic started from another one is linked to it as related.
+export async function startNewTopic(title: string, fromTopicId: string) {
+  const topic = await api.createTopic(title);
+  await api.addLink({ fromTopicId, toTopicId: topic.id, kind: "related" });
   const settings = await api.getSettings();
   await startCycle(topic.id, settings.defaultMethod);
 }
@@ -67,12 +69,11 @@ export async function startCycleFromForm(topicId: string, formData: FormData) {
 
 export async function createTopicAndStart(input: {
   title: string;
-  parentId: string | null;
   learnFirstIds: string[];
   relatedIds: string[];
   tags: string[];
 }) {
-  const topic = await api.createTopic(input.title, input.parentId);
+  const topic = await api.createTopic(input.title);
   for (const id of input.learnFirstIds) {
     await api.addLink({ fromTopicId: id, toTopicId: topic.id, kind: "prerequisite" });
   }

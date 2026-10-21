@@ -6,7 +6,6 @@ import { StageProgress } from "@/components/stage-progress";
 import { TagEditor } from "@/components/tag-editor";
 import { api, METHODS, type MethodName, type Topic } from "@/lib/api";
 import { dueLabel, formatDate, METHOD_LABELS } from "@/lib/format";
-import { ancestorsOf } from "@/lib/topics";
 
 function TopicLinks({ label, topics }: { label: string; topics: Topic[] }) {
   if (topics.length === 0) return null;
@@ -16,7 +15,13 @@ function TopicLinks({ label, topics }: { label: string; topics: Topic[] }) {
       <dd className="flex flex-wrap gap-x-3 gap-y-1">
         {topics.map((t) => (
           <Link key={t.id} href={`/topics/${t.id}`} className="text-pen underline-offset-4 hover:underline">
+            <span aria-hidden className="text-muted">
+              [[
+            </span>
             {t.title}
+            <span aria-hidden className="text-muted">
+              ]]
+            </span>
           </Link>
         ))}
       </dd>
@@ -40,8 +45,6 @@ export default async function TopicPage(props: PageProps<"/topics/[id]">) {
   ]);
   const byId = (topicId: string) => topics.find((t) => t.id === topicId)!;
 
-  const ancestors = ancestorsOf(topic, topics);
-  const children = topics.filter((t) => t.parentId === id);
   const learnFirst = links.filter((l) => l.kind === "prerequisite" && l.toTopicId === id);
   const unlocks = links.filter((l) => l.kind === "prerequisite" && l.fromTopicId === id);
   const related = links.filter((l) => l.kind === "related");
@@ -49,18 +52,6 @@ export default async function TopicPage(props: PageProps<"/topics/[id]">) {
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-10">
       <header className="flex flex-col gap-3">
-        {ancestors.length > 0 && (
-          <nav aria-label="Breadcrumb" className="flex flex-wrap gap-1.5 text-sm text-muted">
-            {ancestors.map((a) => (
-              <span key={a.id} className="flex gap-1.5">
-                <Link href={`/topics/${a.id}`} className="hover:text-pen">
-                  {a.title}
-                </Link>
-                <span aria-hidden>›</span>
-              </span>
-            ))}
-          </nav>
-        )}
         <h1 className="font-serif text-4xl font-semibold tracking-tight">{topic.title}</h1>
         {topic.description && <p className="max-w-prose text-lg text-muted">{topic.description}</p>}
         <TagEditor topicId={id} clusters={clusters} />
@@ -103,7 +94,7 @@ export default async function TopicPage(props: PageProps<"/topics/[id]">) {
         </form>
       </section>
 
-      {(learnFirst.length > 0 || unlocks.length > 0 || related.length > 0 || children.length > 0) && (
+      {(learnFirst.length > 0 || unlocks.length > 0 || related.length > 0) && (
         <dl className="grid gap-5 sm:grid-cols-2">
           <TopicLinks label="Learn first" topics={learnFirst.map((l) => byId(l.fromTopicId))} />
           <TopicLinks label="Unlocks" topics={unlocks.map((l) => byId(l.toTopicId))} />
@@ -111,7 +102,6 @@ export default async function TopicPage(props: PageProps<"/topics/[id]">) {
             label="Related"
             topics={related.map((l) => byId(l.fromTopicId === id ? l.toTopicId : l.fromTopicId))}
           />
-          <TopicLinks label="Subtopics" topics={children} />
         </dl>
       )}
 

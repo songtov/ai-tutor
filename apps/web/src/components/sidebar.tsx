@@ -2,8 +2,9 @@ import Link from "next/link";
 import { Suspense } from "react";
 
 import { ApiHealth } from "@/components/api-health";
-import { TopicTree } from "@/components/topic-tree";
+import { TopicList } from "@/components/topic-list";
 import { api } from "@/lib/api";
+import { sortByTitle } from "@/lib/topics";
 
 export async function Sidebar() {
   const [topics, clusters] = await Promise.all([api.listTopics(), api.listClusters()]);
@@ -55,7 +56,7 @@ export async function Sidebar() {
         )}
         <div className="flex flex-col gap-2">
           <h2 className="text-sm text-muted">Topics</h2>
-          <TopicTree topics={topics} />
+          <TopicList topics={sortByTitle(topics)} />
         </div>
       </nav>
       <Suspense fallback={<p className="text-xs text-muted">Checking API…</p>}>
