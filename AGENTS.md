@@ -70,7 +70,14 @@ Tasks are defined in `[tool.poe.tasks]` in `apps/api/pyproject.toml`.
 
 ### `apps/web`
 
-TBD. Added when the app is scaffolded.
+Next.js (App Router) with Tailwind, managed with [pnpm](https://pnpm.io/). Built for Cloudflare Workers with [OpenNext](https://opennext.js.org/cloudflare). Run these from `apps/web`:
+
+- Install: `pnpm install`
+- Run the frontend: `pnpm dev` (http://localhost:3000; reads the API from `API_URL`, default `http://127.0.0.1:8000`)
+- Lint: `pnpm lint`
+- Type check: `pnpm typecheck`
+- Build: `pnpm build`
+- Preview in the Workers runtime locally: `pnpm preview`
 
 ## Verification
 
