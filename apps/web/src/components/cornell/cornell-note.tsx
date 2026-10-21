@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 
 import { NoteView, type NoteIndex } from "@/components/note-view";
 import type { CueSuggestion, NoteBlock, NoteDoc } from "@/lib/api";
+import { noteStatements } from "@/lib/notes";
 
 const newId = (prefix: string) => `${prefix}-${crypto.randomUUID()}`;
 
@@ -69,6 +70,9 @@ function CueCell({
     );
   }
 
+  // Headings and hashtag lines have nothing to recall.
+  if (!adding && noteStatements(block.text).length === 0) return null;
+
   if (adding) {
     return (
       <textarea
@@ -91,7 +95,7 @@ function CueCell({
     <button
       type="button"
       onClick={() => setAdding(true)}
-      className="text-sm text-muted opacity-0 group-focus-within/row:opacity-100 group-hover/row:opacity-100 focus:opacity-100"
+      className="text-sm text-muted sm:opacity-0 sm:group-focus-within/row:opacity-100 sm:group-hover/row:opacity-100 sm:focus:opacity-100"
     >
       + Add a cue
     </button>
@@ -139,10 +143,10 @@ export function CornellNote({
 
   return (
     <div ref={sheetRef} onMouseUp={onMouseUp} className="relative rounded-lg border border-rule bg-surface">
-      <div className="grid grid-cols-[minmax(0,1fr)_minmax(9rem,16rem)] border-b border-rule text-xs text-muted">
+      <div className="flex justify-between border-b border-rule text-xs text-muted sm:grid sm:grid-cols-[minmax(0,1fr)_minmax(10rem,15rem)]">
         <span className="px-5 py-2">Notes</span>
-        <span className="flex items-center justify-between gap-2 border-l border-rule px-4 py-2">
-          Cues
+        <span className="flex items-center justify-between gap-2 px-4 py-2 sm:border-l sm:border-rule">
+          <span className="hidden sm:inline">Cues</span>
           <button
             type="button"
             onClick={onSuggest}
@@ -156,7 +160,7 @@ export function CornellNote({
       </div>
 
       {doc.blocks.map((block, i) => (
-        <div key={block.id} className="group/row grid grid-cols-[minmax(0,1fr)_minmax(9rem,16rem)]">
+        <div key={block.id} className="group/row sm:grid sm:grid-cols-[minmax(0,1fr)_minmax(10rem,15rem)]">
           <div className="px-5 py-2.5">
             {editingId === block.id ? (
               <textarea
@@ -206,7 +210,7 @@ export function CornellNote({
               </div>
             )}
           </div>
-          <div className="border-l border-rule px-4 py-3">
+          <div className="mb-3 ml-5 border-l-2 border-pen-soft px-3 py-1 empty:hidden sm:m-0 sm:border-l sm:border-rule sm:px-4 sm:py-3 sm:empty:block">
             <CueCell
               doc={doc}
               block={block}

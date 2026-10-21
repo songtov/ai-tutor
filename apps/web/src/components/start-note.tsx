@@ -20,39 +20,36 @@ export function StartNote({ topics }: { topics: Topic[] }) {
         e.preventDefault();
         if (title) startTransition(() => openNote(title));
       }}
-      className="flex flex-col gap-4"
+      className="relative"
     >
-      <label htmlFor="what-to-learn" className="font-serif text-4xl font-semibold tracking-tight">
-        What do you want to learn?
+      <label htmlFor="open-note" className="sr-only">
+        Open a note or start a new one
       </label>
       <input
-        id="what-to-learn"
+        id="open-note"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        placeholder="Derivatives, the French subjunctive, how vaccines work…"
+        placeholder="What do you want to learn? Open or start a note"
         autoComplete="off"
-        className="border-b-2 border-rule bg-transparent pb-2 font-serif text-2xl text-pen outline-none placeholder:text-muted/60 focus:border-pen"
+        className="w-full rounded-md border border-rule bg-surface px-4 py-2.5 font-serif text-lg text-pen outline-none placeholder:font-sans placeholder:text-base placeholder:text-muted focus:border-pen"
       />
       {title && (
-        <ul className="divide-y divide-rule rounded-lg border border-rule bg-surface">
+        <ul className="absolute inset-x-0 top-full z-10 mt-1 divide-y divide-rule rounded-md border border-rule bg-surface shadow-lg">
           {matches.map((t) => (
             <li key={t.id}>
-              <Link href={`/notes/${t.id}`} className="flex justify-between gap-2 px-4 py-3 hover:bg-pen-soft">
+              <Link href={`/notes/${t.id}`} className="flex justify-between gap-2 px-4 py-2.5 hover:bg-pen-soft">
                 <span className="font-semibold">{t.title}</span>
-                <span className="text-sm font-semibold text-pen">Open note</span>
+                <span className="text-sm text-pen">Open</span>
               </Link>
             </li>
           ))}
           {!exact && (
             <li>
-              <button
-                disabled={pending}
-                className="flex w-full justify-between gap-2 px-4 py-3 text-left hover:bg-pen-soft"
-              >
+              <button disabled={pending} className="flex w-full justify-between gap-2 px-4 py-2.5 text-left hover:bg-pen-soft">
                 <span>
                   New note: <span className="font-serif font-semibold text-pen">{title}</span>
                 </span>
-                <span className="text-sm font-semibold text-pen">Start writing</span>
+                <span className="text-sm text-pen">Start writing</span>
               </button>
             </li>
           )}

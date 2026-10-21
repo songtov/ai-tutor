@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 
 import { ApiHealth } from "@/components/api-health";
+import { SidebarShell } from "@/components/sidebar-shell";
 import { TopicList } from "@/components/topic-list";
 import { api } from "@/lib/api";
 import { sortByTitle } from "@/lib/topics";
@@ -10,14 +11,11 @@ export async function Sidebar() {
   const [topics, hashtags, due] = await Promise.all([api.listTopics(), api.listHashtags(), api.listDueReviews()]);
   const titleOf = (id: string) => topics.find((t) => t.id === id)?.title ?? id;
   return (
-    <aside className="flex shrink-0 flex-col gap-6 border-b border-rule bg-surface px-4 py-5 md:sticky md:top-0 md:h-screen md:w-60 md:border-r md:border-b-0 md:px-5 md:py-8">
-      <Link href="/" className="font-serif text-xl font-semibold tracking-tight text-ink">
-        ai-tutor
-      </Link>
+    <SidebarShell>
       <nav className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto">
         <div className="flex flex-col gap-1 text-sm font-semibold">
           <Link href="/" className="text-ink hover:text-pen">
-            Today
+            Graph
           </Link>
           <Link href="/review" className="flex items-center justify-between text-ink hover:text-pen">
             Review
@@ -68,6 +66,6 @@ export async function Sidebar() {
       <Suspense fallback={<p className="text-xs text-muted">Checking API…</p>}>
         <ApiHealth />
       </Suspense>
-    </aside>
+    </SidebarShell>
   );
 }

@@ -12,6 +12,10 @@
   --pen-soft: #e6eafb;
   --highlight: #ffe45c;
   --on-highlight: #1b2238;
+  /* Hashtag colors in the graph, in fixed order (validated: dataviz all-pairs, 3 slots). */
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+  --series-3: #1baf7a;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -25,6 +29,9 @@
     --pen-soft: #232a45;
     --highlight: #e2c640;
     --on-highlight: #12161f;
+    --series-1: #3987e5;
+    --series-2: #d95926;
+    --series-3: #199e70;
   }
 }
 

@@ -44,14 +44,14 @@ export function CornellTest({
       </p>
 
       <div className="rounded-lg border border-rule bg-surface">
-        <div className="grid grid-cols-[minmax(0,1fr)_minmax(9rem,16rem)] border-b border-rule text-xs text-muted">
+        <div className="hidden border-b border-rule text-xs text-muted sm:grid sm:grid-cols-[minmax(0,1fr)_minmax(10rem,15rem)]">
           <span className="px-5 py-2">{feedback ? "Your answer, then your note" : "Your answer"}</span>
           <span className="border-l border-rule px-4 py-2">Cues</span>
         </div>
         {cues.map((cue) => {
           const result = results.find((r) => r.cueId === cue.id);
           return (
-            <div key={cue.id} className="grid grid-cols-[minmax(0,1fr)_minmax(9rem,16rem)] border-b border-rule last:border-0">
+            <div key={cue.id} className="flex flex-col border-b border-rule last:border-0 sm:grid sm:grid-cols-[minmax(0,1fr)_minmax(10rem,15rem)]">
               <div className="flex flex-col gap-3 px-5 py-3">
                 {feedback ? (
                   <>
@@ -81,7 +81,9 @@ export function CornellTest({
                   />
                 )}
               </div>
-              <div className="border-l border-rule px-4 py-3 text-sm font-semibold leading-snug">{cue.question}</div>
+              <div className="order-first px-5 pt-3 text-sm font-semibold leading-snug sm:order-none sm:border-l sm:border-rule sm:px-4 sm:py-3">
+                {cue.question}
+              </div>
             </div>
           );
         })}

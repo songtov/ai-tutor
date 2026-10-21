@@ -224,7 +224,7 @@ export function Drawer(props: {
   return (
     <aside
       aria-label="Study tools"
-      className="fixed inset-y-0 right-0 z-20 flex w-full max-w-sm flex-col gap-5 overflow-y-auto border-l border-rule bg-surface p-5 shadow-xl"
+      className="fixed inset-y-0 right-0 z-40 flex w-full max-w-sm flex-col gap-5 overflow-y-auto border-l border-rule bg-surface p-5 shadow-xl"
     >
       <div className="flex items-center justify-between gap-2 border-b border-rule">
         <div role="tablist" className="flex gap-1">
