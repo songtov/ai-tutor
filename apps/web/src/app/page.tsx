@@ -1,23 +1,86 @@
-import { Suspense } from "react";
+import Link from "next/link";
 
-import { getHealth } from "@/lib/health";
+import { startCycle } from "@/app/actions";
+import { StageProgress } from "@/components/stage-progress";
+import { api } from "@/lib/api";
+import { dueLabel, formatDate, STAGE_LABELS } from "@/lib/format";
 
-async function ApiHealth() {
-  const health = await getHealth();
-  return health.ok ? (
-    <p className="text-green-700 dark:text-green-400">API: {health.status}</p>
-  ) : (
-    <p className="text-red-700 dark:text-red-400">API unreachable: {health.error}</p>
-  );
-}
+export default async function TodayPage() {
+  const [topics, dueReviews, activeCycles] = await Promise.all([
+    api.listTopics(),
+    api.listDueReviews(),
+    api.listActiveCycles(),
+  ]);
+  const titleOf = (id: string) => topics.find((t) => t.id === id)?.title ?? id;
+  const today = new Date().toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+  });
 
-export default function Home() {
   return (
-    <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-4 px-6 py-24">
-      <h1 className="text-3xl font-semibold tracking-tight">ai-tutor</h1>
-      <Suspense fallback={<p className="text-zinc-500">Checking API…</p>}>
-        <ApiHealth />
-      </Suspense>
-    </main>
+    <div className="mx-auto flex max-w-3xl flex-col gap-12">
+      <header className="flex flex-col gap-1">
+        <h1 className="font-serif text-4xl font-semibold tracking-tight">Today</h1>
+        <p className="text-muted">{today}</p>
+      </header>
+
+      <section className="flex flex-col gap-4">
+        <h2 className="text-lg font-semibold">Recall before you forget</h2>
+        {dueReviews.length === 0 ? (
+          <p className="text-muted">Nothing to review today. Start a topic from the sidebar.</p>
+        ) : (
+          <ul className="divide-y divide-rule border-y border-rule">
+            {dueReviews.map((review) => (
+              <li key={review.topicId} className="flex flex-wrap items-center gap-x-6 gap-y-2 py-4">
+                <div className="flex min-w-0 flex-1 flex-col">
+                  <Link
+                    href={`/topics/${review.topicId}`}
+                    className="font-serif text-xl font-medium hover:text-pen"
+                  >
+                    {titleOf(review.topicId)}
+                  </Link>
+                  <p className="text-sm text-muted">
+                    <span className="highlight">{dueLabel(review.dueAt)}</span>
+                    {review.lastReviewedAt && ` Last recalled ${formatDate(review.lastReviewedAt)}.`}
+                  </p>
+                </div>
+                <form action={startCycle.bind(null, review.topicId, "review")}>
+                  <button className="rounded-md bg-pen px-4 py-2 text-sm font-semibold text-surface hover:opacity-90">
+                    Start review
+                  </button>
+                </form>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <section className="flex flex-col gap-4">
+        <h2 className="text-lg font-semibold">Pick up where you left off</h2>
+        {activeCycles.length === 0 ? (
+          <p className="text-muted">No cycle in progress.</p>
+        ) : (
+          <ul className="flex flex-col gap-3">
+            {activeCycles.map((cycle) => (
+              <li key={cycle.id}>
+                <Link
+                  href={`/topics/${cycle.topicId}/cycles/${cycle.id}`}
+                  className="flex flex-col gap-3 rounded-lg border border-rule bg-surface p-5 hover:border-pen"
+                >
+                  <div className="flex flex-wrap items-baseline justify-between gap-2">
+                    <span className="font-serif text-xl font-medium">{titleOf(cycle.topicId)}</span>
+                    <span className="text-sm text-muted">
+                      Next up: {STAGE_LABELS[cycle.stages[cycle.currentIndex]]}
+                    </span>
+                  </div>
+                  <StageProgress cycle={cycle} />
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+    </div>
   );
 }
