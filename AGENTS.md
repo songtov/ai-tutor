@@ -52,7 +52,25 @@ Core domain concepts: Topic, LearningCycle (and its stages), Material, Quiz / At
 
 ## Commands
 
-TBD. They will be added when each app is scaffolded. Don't invent commands. Read each app's config files (`package.json`, `pyproject.toml`) instead.
+Don't invent commands. If something is missing here, read the app's config files (`package.json`, `pyproject.toml`).
+
+### `apps/api`
+
+Python 3.14, managed with [uv](https://docs.astral.sh/uv/). Tasks run with [Poe the Poet](https://poethepoet.natn.io/) (`uv tool install poethepoet`). Run these from `apps/api`:
+
+- Install: `uv sync`
+- Run the backend: `poe run` (http://127.0.0.1:8000, reloads on change)
+- Lint (ruff check and format check): `poe lint`
+- Format (ruff: import sort, autofix, Black-style format): `poe format`
+- Type check: `poe typecheck`
+- Test: `poe test`
+- All checks (lint, type check, test): `poe check`
+
+Tasks are defined in `[tool.poe.tasks]` in `apps/api/pyproject.toml`.
+
+### `apps/web`
+
+TBD. Added when the app is scaffolded.
 
 ## Verification
 

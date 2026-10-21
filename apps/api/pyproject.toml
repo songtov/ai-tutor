@@ -1,0 +1,39 @@
+[project]
+name = "ai-tutor-api"
+version = "0.1.0"
+description = "ai-tutor backend"
+requires-python = ">=3.14"
+dependencies = [
+    "fastapi>=0.156.2",
+    "uvicorn>=0.54.0",
+]
+
+[build-system]
+requires = ["uv_build>=0.11.14,<0.12.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "httpx2>=2.15.1",
+    "mypy>=2.4.0",
+    "poethepoet>=0.49.0",
+    "pytest>=9.1.1",
+    "ruff>=0.17.1",
+]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+
+[tool.mypy]
+strict = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.poe.tasks]
+run = "uvicorn ai_tutor_api.main:app --reload"
+lint = [{ cmd = "ruff check" }, { cmd = "ruff format --check" }]
+format = [{ cmd = "ruff check --fix" }, { cmd = "ruff format" }]
+typecheck = "mypy src tests"
+test = "pytest"
+check = ["lint", "typecheck", "test"]
