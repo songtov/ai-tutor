@@ -4,7 +4,7 @@ Instructions for coding agents working in this repo. For the product vision, the
 
 ## Project
 
-ai-tutor is a learner-first tool that runs a persistent learning cycle (chat → materials → blank quiz → feedback → notes → review → next topic) on a topic. It runs both locally and as a hosted SaaS.
+ai-tutor is a note-first learning app. The learner writes one note per topic; the AI tests their recall (Test me, feedback, review), finds materials, and answers questions about the note. It runs both locally and as a hosted SaaS.
 
 ## Layout
 
@@ -23,7 +23,7 @@ ai-tutor is a learner-first tool that runs a persistent learning cycle (chat →
 
 Dependencies point inward: `interface` → `application` → `domain` ← `infrastructure`.
 
-Core domain concepts: Topic, LearningCycle (and its stages), Material, Quiz / Attempt, Feedback, Note, Review.
+Core domain concepts: Topic (a note), NoteRevision, TopicLink, Hashtag, Attempt, Feedback, Material, Question, ReviewSchedule. See [docs/domain.md](docs/domain.md).
 
 ## Local vs remote
 
@@ -36,12 +36,12 @@ Core domain concepts: Topic, LearningCycle (and its stages), Material, Quiz / At
 
 ## Product rules
 
-- Never discard learner artifacts: chats, materials, quiz answers, uploaded photos, feedback, and notes are kept.
-- Every learning record belongs to a topic.
-- Topics are flat (no tree). They are connected by `prerequisite` and `related` links and grouped by clusters, which learners see as hashtags.
+- The AI never writes the learner's note. It asks, checks, and finds; anything it produces must cost the learner a recall or a rephrase to keep.
+- Never discard learner records: note revisions, test answers, uploaded photos, feedback, materials, summaries, and questions are kept.
+- Every study record belongs to a topic.
+- Topics are flat notes (no tree). `[[Links]]` and `#hashtags` are parsed from the note body.
 - Prefer prompting the learner to recall or explain over handing them the answer.
 - Notes and study history are also written to a Markdown vault (Obsidian-compatible) as a one-way copy. The database stays the source of truth. See [docs/domain.md](docs/domain.md#markdown-vault).
-- Learners pick a learning method (a preset stage order). In strict mode they follow the order but can still skip a stage.
 
 ## Conventions
 
