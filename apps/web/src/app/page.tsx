@@ -2,12 +2,15 @@ import Link from "next/link";
 
 import { startCycle } from "@/app/actions";
 import { StageProgress } from "@/components/stage-progress";
+import { StartTopic } from "@/components/start-topic";
 import { api } from "@/lib/api";
 import { dueLabel, formatDate, STAGE_LABELS } from "@/lib/format";
+import { pathLabel } from "@/lib/topics";
 
 export default async function TodayPage() {
-  const [topics, dueReviews, activeCycles] = await Promise.all([
+  const [topics, clusters, dueReviews, activeCycles] = await Promise.all([
     api.listTopics(),
+    api.listClusters(),
     api.listDueReviews(),
     api.listActiveCycles(),
   ]);
@@ -20,15 +23,19 @@ export default async function TodayPage() {
 
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-12">
-      <header className="flex flex-col gap-1">
-        <h1 className="font-serif text-4xl font-semibold tracking-tight">Today</h1>
+      <header className="flex flex-col gap-4">
+        <h1 className="sr-only">Today</h1>
         <p className="text-muted">{today}</p>
+        <StartTopic
+          topics={topics.map((t) => ({ ...t, path: pathLabel(t, topics) }))}
+          tagNames={clusters.map((c) => c.name)}
+        />
       </header>
 
       <section className="flex flex-col gap-4">
         <h2 className="text-lg font-semibold">Recall before you forget</h2>
         {dueReviews.length === 0 ? (
-          <p className="text-muted">Nothing to review today. Start a topic from the sidebar.</p>
+          <p className="text-muted">Nothing to review today.</p>
         ) : (
           <ul className="divide-y divide-rule border-y border-rule">
             {dueReviews.map((review) => (

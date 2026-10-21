@@ -57,8 +57,8 @@ function seed() {
   ];
 
   const clusters: Cluster[] = [
-    { id: "exam", name: "Calculus exam", topicIds: ["limits", "derivatives", "integrals"] },
-    { id: "basics", name: "Foundations", topicIds: ["multiplication", "division", "algebra"] },
+    { id: "exam", name: "calculus-exam", topicIds: ["limits", "derivatives", "integrals"] },
+    { id: "basics", name: "foundations", topicIds: ["multiplication", "division", "algebra"] },
   ];
 
   const cycles: LearningCycle[] = [
@@ -261,8 +261,32 @@ export const mockApi: ApiClient = {
   async listLinks(topicId) {
     return links.filter((l) => l.fromTopicId === topicId || l.toTopicId === topicId);
   },
+  async addLink(link) {
+    const exists = links.some(
+      (l) => l.fromTopicId === link.fromTopicId && l.toTopicId === link.toTopicId && l.kind === link.kind,
+    );
+    if (!exists) links.push(link);
+    return link;
+  },
   async listClusters() {
     return clusters;
+  },
+  async getCluster(id) {
+    return clusters.find((c) => c.id === id) ?? null;
+  },
+  async tagTopic(topicId, clusterName) {
+    let cluster = clusters.find((c) => c.name === clusterName);
+    if (!cluster) {
+      cluster = { id: newId("cl"), name: clusterName, topicIds: [] };
+      clusters.push(cluster);
+    }
+    if (!cluster.topicIds.includes(topicId)) cluster.topicIds.push(topicId);
+    return { ...cluster };
+  },
+  async untagTopic(topicId, clusterId) {
+    const cluster = find(clusters, (c) => c.id === clusterId);
+    cluster.topicIds = cluster.topicIds.filter((id) => id !== topicId);
+    return { ...cluster };
   },
 
   async listCycles(topicId) {

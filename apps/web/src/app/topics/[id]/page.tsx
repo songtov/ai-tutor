@@ -3,8 +3,10 @@ import { notFound } from "next/navigation";
 
 import { startCycleFromForm } from "@/app/actions";
 import { StageProgress } from "@/components/stage-progress";
+import { TagEditor } from "@/components/tag-editor";
 import { api, METHODS, type MethodName, type Topic } from "@/lib/api";
 import { dueLabel, formatDate, METHOD_LABELS } from "@/lib/format";
+import { ancestorsOf } from "@/lib/topics";
 
 function TopicLinks({ label, topics }: { label: string; topics: Topic[] }) {
   if (topics.length === 0) return null;
@@ -38,13 +40,11 @@ export default async function TopicPage(props: PageProps<"/topics/[id]">) {
   ]);
   const byId = (topicId: string) => topics.find((t) => t.id === topicId)!;
 
-  const ancestors: Topic[] = [];
-  for (let p = topic.parentId; p; p = byId(p).parentId) ancestors.unshift(byId(p));
+  const ancestors = ancestorsOf(topic, topics);
   const children = topics.filter((t) => t.parentId === id);
   const learnFirst = links.filter((l) => l.kind === "prerequisite" && l.toTopicId === id);
   const unlocks = links.filter((l) => l.kind === "prerequisite" && l.fromTopicId === id);
   const related = links.filter((l) => l.kind === "related");
-  const topicClusters = clusters.filter((c) => c.topicIds.includes(id));
 
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-10">
@@ -63,15 +63,7 @@ export default async function TopicPage(props: PageProps<"/topics/[id]">) {
         )}
         <h1 className="font-serif text-4xl font-semibold tracking-tight">{topic.title}</h1>
         {topic.description && <p className="max-w-prose text-lg text-muted">{topic.description}</p>}
-        {topicClusters.length > 0 && (
-          <ul className="flex flex-wrap gap-2" aria-label="Clusters">
-            {topicClusters.map((c) => (
-              <li key={c.id} className="rounded-full bg-pen-soft px-3 py-0.5 text-sm text-pen">
-                {c.name}
-              </li>
-            ))}
-          </ul>
-        )}
+        <TagEditor topicId={id} clusters={clusters} />
       </header>
 
       <section className="flex flex-wrap items-end justify-between gap-4 rounded-lg border border-rule bg-surface p-5">
@@ -82,6 +74,8 @@ export default async function TopicPage(props: PageProps<"/topics/[id]">) {
               <span className={new Date(review.dueAt) <= new Date() ? "highlight" : undefined}>
                 Review {dueLabel(review.dueAt).toLowerCase()}.
               </span>
+            ) : cycles.length > 0 ? (
+              "No review scheduled yet."
             ) : (
               "You haven't studied this topic yet."
             )}
