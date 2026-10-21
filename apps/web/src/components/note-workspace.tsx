@@ -1,16 +1,16 @@
 "use client";
 
+import type { Editor } from "@tiptap/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
 
 import { renameNote, saveNote, suggestCues } from "@/app/actions";
-import { CornellNote } from "@/components/cornell/cornell-note";
 import { CornellTest } from "@/components/cornell/cornell-test";
-import type { NoteIndex } from "@/components/note-view";
+import { NoteEditor } from "@/components/editor/note-editor";
 import { Drawer, type DrawerTab } from "@/components/study/drawer";
 import type { Attempt, CueSuggestion, Feedback, Material, NoteDoc, Question, ReviewSchedule, Topic } from "@/lib/api";
 import { dueLabel, formatDate } from "@/lib/format";
-import { bodyOf, parseLinks } from "@/lib/notes";
+import { bodyOf, parseLinks, type NoteIndex } from "@/lib/notes";
 
 export function NoteWorkspace(props: {
   topic: Topic;
@@ -36,6 +36,8 @@ export function NoteWorkspace(props: {
   const [suggesting, startSuggest] = useTransition();
   const [, startRename] = useTransition();
   const lastSaved = useRef(JSON.stringify(doc));
+  const [showCues, setShowCues] = useState(true);
+  const editorRef = useRef<Editor | null>(null);
 
   // Autosave, like any note app. Each save keeps the previous version.
   useEffect(() => {
@@ -54,8 +56,19 @@ export function NoteWorkspace(props: {
   const lastTest = props.attempts.at(-1);
   const due = props.review && new Date(props.review.dueAt) <= new Date();
 
-  const addToNote = (text: string) =>
-    setDoc((d) => ({ ...d, blocks: [...d.blocks, { id: `b-${crypto.randomUUID()}`, text: text.trim() }] }));
+  // Inserts a prompt (a quote block) at the end of the note; the learner writes the answer.
+  const addToNote = (text: string) => {
+    const editor = editorRef.current;
+    if (!editor) return;
+    const quote = text.replace(/^>\s?/, "").trim();
+    editor
+      .chain()
+      .insertContentAt(editor.state.doc.content.size, {
+        type: "blockquote",
+        content: [{ type: "paragraph", content: [{ type: "text", text: quote }] }],
+      })
+      .run();
+  };
 
   const counts: Record<DrawerTab, number> = {
     materials: props.materials.length,
@@ -64,7 +77,7 @@ export function NoteWorkspace(props: {
   };
 
   return (
-    <div className="mx-auto flex max-w-4xl flex-col gap-6">
+    <div className={`mx-auto flex flex-col gap-6 ${showCues ? "max-w-5xl" : "max-w-3xl"}`}>
       <header className="flex flex-col gap-3 border-b border-rule pb-3">
         <h1 className="sr-only">{title}</h1>
         <input
@@ -138,6 +151,15 @@ export function NoteWorkspace(props: {
                 {counts[tab] > 0 && <span className="ml-1 text-xs">{counts[tab]}</span>}
               </button>
             ))}
+            <button
+              type="button"
+              aria-pressed={showCues}
+              onClick={() => setShowCues(!showCues)}
+              title={showCues ? "Hide the cue column" : "Show the cue column"}
+              className="ml-auto rounded-md px-2 py-1.5 text-muted hover:bg-pen-soft hover:text-ink"
+            >
+              {showCues ? "Hide cues ⇥" : "⇤ Cues"}
+            </button>
           </nav>
         )}
       </header>
@@ -152,17 +174,36 @@ export function NoteWorkspace(props: {
           }}
         />
       ) : (
-        <CornellNote
-          doc={doc}
-          index={props.index}
-          suggestions={suggestions}
-          onChange={setDoc}
-          onDismissSuggestion={(blockId) => setSuggestions(suggestions.filter((s) => s.blockId !== blockId))}
-          onAsk={(text) => {
-            setQuote(text);
-            setDrawer("questions");
-          }}
-        />
+        <>
+          <NoteEditor
+            initialBlocks={doc.blocks}
+            known={new Set(Object.keys(props.index))}
+            cues={doc.cues}
+            suggestions={suggestions}
+            showCues={showCues}
+            editorRef={editorRef}
+            onBlocksChange={(blocks) => setDoc((d) => ({ ...d, blocks }))}
+            onCuesChange={(cues) => setDoc((d) => ({ ...d, cues }))}
+            onDismissSuggestion={(blockId) => setSuggestions((all) => all.filter((s) => s.blockId !== blockId))}
+            onAsk={(text) => {
+              setQuote(text);
+              setDrawer("questions");
+            }}
+          />
+          <section className="flex flex-col gap-1 border-t border-rule pt-4">
+            <label htmlFor="summary" className="text-sm font-semibold text-muted">
+              Summary
+            </label>
+            <textarea
+              id="summary"
+              value={doc.summary}
+              onChange={(e) => setDoc((d) => ({ ...d, summary: e.target.value }))}
+              placeholder="The whole note in two or three sentences, in your own words."
+              rows={2}
+              className="field-sizing-content min-h-12 w-full resize-none bg-transparent font-serif text-base leading-relaxed outline-none placeholder:text-muted/70 md:text-lg"
+            />
+          </section>
+        </>
       )}
 
       {drawer && !testing && (

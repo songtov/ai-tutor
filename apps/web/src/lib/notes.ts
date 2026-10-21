@@ -1,5 +1,8 @@
 // Links and hashtags live in the note text, like Obsidian.
 
+// Lowercased titles of existing notes, mapped to their ids.
+export type NoteIndex = Record<string, string>;
+
 export const LINK_PATTERN = /\[\[([^\]|#]+)(?:[|#][^\]]*)?\]\]/g;
 export const TAG_PATTERN = /(^|\s)#([\p{L}\p{N}_-]+)/gu;
 const PROMPT_PREFIX = "Explain in your own words:";

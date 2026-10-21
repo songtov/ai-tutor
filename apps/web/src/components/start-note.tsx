@@ -29,7 +29,7 @@ export function StartNote({ topics }: { topics: Topic[] }) {
         id="open-note"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        placeholder="What do you want to learn? Open or start a note"
+        placeholder="Open a note or start a new one"
         autoComplete="off"
         className="w-full rounded-md border border-rule bg-surface px-4 py-2.5 font-serif text-lg text-pen outline-none placeholder:font-sans placeholder:text-base placeholder:text-muted focus:border-pen"
       />

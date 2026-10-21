@@ -15,13 +15,16 @@ export async function Sidebar() {
       <nav className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto">
         <div className="flex flex-col gap-1 text-sm font-semibold">
           <Link href="/" className="text-ink hover:text-pen">
-            Graph
+            Home
           </Link>
           <Link href="/review" className="flex items-center justify-between text-ink hover:text-pen">
             Review
             {due.length > 0 && (
               <span className="rounded-full bg-highlight px-2 text-xs text-on-highlight">{due.length}</span>
             )}
+          </Link>
+          <Link href="/graph" className="text-ink hover:text-pen">
+            Graph
           </Link>
         </div>
         {hashtags.length > 0 && (

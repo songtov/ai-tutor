@@ -6,7 +6,8 @@ import { scheduleReview, submitAttempt } from "@/app/actions";
 import type { Feedback, NoteDoc } from "@/lib/api";
 import { noteStatements } from "@/lib/notes";
 
-import { CORNELL_COLS } from "./cornell-note";
+// The Cornell split: answers on the left, a cue column about a third wide on the right.
+const CORNELL_COLS = "grid-cols-[minmax(0,1fr)_32%] md:grid-cols-[minmax(0,1fr)_15rem]";
 
 const INTERVALS = [
   { days: 1, label: "Tomorrow", hint: "I barely remembered" },

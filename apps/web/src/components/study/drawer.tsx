@@ -4,9 +4,8 @@ import Link from "next/link";
 import { useState, useTransition } from "react";
 
 import { askQuestion, findMaterials, saveMaterial } from "@/app/actions";
-import type { NoteIndex } from "@/components/note-view";
 import type { Material, Question, Topic } from "@/lib/api";
-import { explainPrompt, parseLinks } from "@/lib/notes";
+import { explainPrompt, parseLinks, type NoteIndex } from "@/lib/notes";
 
 export type DrawerTab = "materials" | "questions" | "links";
 
