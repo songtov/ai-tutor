@@ -64,3 +64,32 @@ export async function scheduleReview(topicId: string, intervalDays: number) {
 export async function startCycleFromForm(topicId: string, formData: FormData) {
   await startCycle(topicId, formData.get("method") as MethodName);
 }
+
+export async function createTopicAndStart(input: {
+  title: string;
+  parentId: string | null;
+  learnFirstIds: string[];
+  relatedIds: string[];
+  tags: string[];
+}) {
+  const topic = await api.createTopic(input.title, input.parentId);
+  for (const id of input.learnFirstIds) {
+    await api.addLink({ fromTopicId: id, toTopicId: topic.id, kind: "prerequisite" });
+  }
+  for (const id of input.relatedIds) {
+    await api.addLink({ fromTopicId: topic.id, toTopicId: id, kind: "related" });
+  }
+  for (const tag of input.tags) await api.tagTopic(topic.id, tag);
+  const settings = await api.getSettings();
+  await startCycle(topic.id, settings.defaultMethod);
+}
+
+export async function tagTopic(topicId: string, clusterName: string) {
+  await api.tagTopic(topicId, clusterName);
+  revalidatePath("/", "layout");
+}
+
+export async function untagTopic(topicId: string, clusterId: string) {
+  await api.untagTopic(topicId, clusterId);
+  revalidatePath("/", "layout");
+}

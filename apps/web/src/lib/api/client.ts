@@ -21,7 +21,11 @@ export interface ApiClient {
   getTopic(id: string): Promise<Topic | null>;
   createTopic(title: string, parentId: string | null): Promise<Topic>;
   listLinks(topicId: string): Promise<TopicLink[]>;
+  addLink(link: TopicLink): Promise<TopicLink>;
   listClusters(): Promise<Cluster[]>;
+  getCluster(id: string): Promise<Cluster | null>;
+  tagTopic(topicId: string, clusterName: string): Promise<Cluster>;
+  untagTopic(topicId: string, clusterId: string): Promise<Cluster>;
 
   listCycles(topicId: string): Promise<LearningCycle[]>;
   listActiveCycles(): Promise<LearningCycle[]>;
