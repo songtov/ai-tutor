@@ -38,7 +38,7 @@ Core domain concepts: Topic, LearningCycle (and its stages), Material, Quiz / At
 
 - Never discard learner artifacts: chats, materials, quiz answers, uploaded photos, feedback, and notes are kept.
 - Every learning record belongs to a topic.
-- Topics form a tree of any depth, with `prerequisite` and `related` links and clusters.
+- Topics are flat (no tree). They are connected by `prerequisite` and `related` links and grouped by clusters, which learners see as hashtags.
 - Prefer prompting the learner to recall or explain over handing them the answer.
 - Notes and study history are also written to a Markdown vault (Obsidian-compatible) as a one-way copy. The database stays the source of truth. See [docs/domain.md](docs/domain.md#markdown-vault).
 - Learners pick a learning method (a preset stage order). In strict mode they follow the order but can still skip a stage.

@@ -8,7 +8,6 @@ The core concepts of ai-tutor, how they relate, and the rules they must keep. Th
 erDiagram
     Learner ||--o{ Topic : owns
     Learner ||--o{ Cluster : owns
-    Topic ||--o{ Topic : "parent of"
     Topic ||--o{ TopicLink : "from / to"
     Cluster }o--o{ Topic : groups
     Topic ||--o{ LearningCycle : has
@@ -33,11 +32,12 @@ The person learning. Local mode has a single default learner; remote mode has on
 Anything the learner wants to learn, as broad or narrow as they like.
 
 - `id`, `owner_id`, `title`, `description`, `created_at`
-- `parent_id`: optional. Topics form a tree of any depth (Math › Calculus › Derivatives). The tree is for organizing; it says nothing about learning order.
+- Topics are flat, like notes in Obsidian: there is no parent or folder tree. Structure comes from links and clusters.
+- `title` is unique per learner, ignoring case, because it is the topic's file name and wikilink target in the vault.
 
 ### TopicLink
 
-A directed edge between two topics of the same learner. Links may cross branches of the tree.
+A directed edge between two topics of the same learner. In the vault it becomes a wikilink.
 
 - `from_topic_id`, `to_topic_id`, `kind`: `prerequisite` or `related`
 - `prerequisite`: *from* must be learned before *to* (Algebra → Calculus).
@@ -45,7 +45,7 @@ A directed edge between two topics of the same learner. Links may cross branches
 
 ### Cluster
 
-A named group of topics, managed by the learner like a tag. A topic can belong to any number of clusters, and a cluster can span branches of the tree.
+A named group of topics. Learners see and manage clusters as hashtags (`#calculus-exam`); in the vault they become tags. A topic can belong to any number of clusters.
 
 - `id`, `owner_id`, `name`
 - members: a set of topic ids
@@ -147,22 +147,23 @@ Layout:
 
 ```
 vault/
-└── Math/
-    ├── Math.md
-    └── Calculus/
-        ├── Calculus.md
-        └── cycles/
-            └── 2026-10-20 standard.md
+├── Limits.md
+├── Derivatives.md
+└── cycles/
+    ├── Limits 2026-10-12 standard.md
+    └── Derivatives 2026-10-20 standard.md
 ```
 
-- **Topic file** (`<Topic>.md`): description and notes. Frontmatter holds the clusters as `tags`. Links become wikilinks: `Prerequisites: [[Algebra]]`, `Related: [[Mechanics]]`.
-- **Cycle file** (`cycles/<date> <method>.md`): the chat, the materials (picked ones marked), each attempt with its photos embedded, and its feedback, in stage order.
+Flat, like the topics. The structure lives in links and tags, so Obsidian's graph view and tag pane show it.
+
+- **Topic file** (`<Topic>.md`): description, notes, and links to its cycles. Frontmatter holds the clusters as `tags`. Links become wikilinks: `Prerequisites: [[Limits]]`, `Related: [[Mechanics]]`.
+- **Cycle file** (`cycles/<Topic> <date> <method>.md`): `Topic: [[Derivatives]]`, then the chat, the materials (picked ones marked), each attempt with its photos embedded, and its feedback, in stage order.
 
 ## Rules
 
 1. Every learning record belongs to exactly one topic: directly (Note, ReviewSchedule) or through its cycle.
-2. A topic's parent, links, and clusters belong to the same learner.
-3. A topic is not its own ancestor: the tree has no cycles.
+2. A topic's links and clusters belong to the same learner.
+3. Topic titles are unique per learner, ignoring case.
 4. `prerequisite` links form a DAG: no topic is, directly or indirectly, its own prerequisite. `related` links may form loops.
 5. No duplicate links: at most one link of each kind between two topics.
 6. Artifacts are never discarded. Deleting a topic is not supported until we decide how to archive it.
@@ -170,9 +171,8 @@ vault/
 
 ## Open questions
 
-- **Deleting and moving topics.** Archive instead of delete? What happens to children and links when a topic is archived or moved?
+- **Deleting and renaming topics.** Archive instead of delete? What happens to links when a topic is archived? Renaming changes the vault file name, so wikilinks in other files must be rewritten.
 - **Note edits.** Notes are editable. Do we keep previous versions to satisfy "nothing vanishes"?
 - **Confidence rating.** Ask the learner how confident they are before showing feedback, to train self-assessment?
 - **Review algorithm.** Fixed intervals, SM-2, or FSRS (#10).
 - **Two-way vault sync.** Read edits made in Obsidian back into the database?
-- **Duplicate topic names.** Topic files are named by title, so two sibling topics with the same title would collide.

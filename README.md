@@ -35,11 +35,12 @@ ai-tutor is built around a full learning cycle on a topic. It keeps everything y
 
 Every cycle belongs to a topic. Topics are free-form and can be as broad or narrow as you like, from *addition* to *calculus*.
 
-- **Tree**: topics nest to any depth (Math › Arithmetic › Division, Math › Calculus › Derivatives).
-- **Links**: topics can be connected as *prerequisites* (Division requires Multiplication) or as *related*.
-- **Clusters**: related topics are grouped together.
+Topics are flat, like notes in Obsidian. There is no folder tree; structure comes from links and hashtags.
 
-The next topic is suggested from this structure.
+- **Links**: topics can be connected as *prerequisites* (Division requires Multiplication) or as *related*. In the Markdown vault they become wikilinks, so Obsidian's graph shows them.
+- **Hashtags**: group topics freely (`#calculus-exam`, `#foundations`) and review a whole group later. In the vault they become tags.
+
+The next topic is suggested from these links and hashtags.
 
 ## Principles
 
