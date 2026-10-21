@@ -7,12 +7,10 @@ import type { LearningCycle, MethodName, TopicSuggestion } from "@/lib/api";
 
 export function NextTopicPanel({
   cycle,
-  parentId,
   defaultMethod,
   suggestions,
 }: {
   cycle: LearningCycle;
-  parentId: string | null;
   defaultMethod: MethodName;
   suggestions: TopicSuggestion[];
 }) {
@@ -26,7 +24,7 @@ export function NextTopicPanel({
       await start();
     });
   const start = (s: TopicSuggestion) =>
-    moveOn(() => (s.topic ? startCycle(s.topic.id, defaultMethod) : startNewTopic(s.title, parentId)));
+    moveOn(() => (s.topic ? startCycle(s.topic.id, defaultMethod) : startNewTopic(s.title, cycle.topicId)));
 
   return (
     <div className="flex flex-col gap-6">
@@ -58,7 +56,7 @@ export function NextTopicPanel({
       <form
         onSubmit={(e) => {
           e.preventDefault();
-          if (title.trim()) moveOn(() => startNewTopic(title.trim(), parentId));
+          if (title.trim()) moveOn(() => startNewTopic(title.trim(), cycle.topicId));
         }}
         className="flex flex-wrap items-center gap-2"
       >

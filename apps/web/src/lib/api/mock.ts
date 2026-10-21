@@ -17,11 +17,10 @@ import {
 const DAY = 24 * 60 * 60 * 1000;
 const at = (days: number) => new Date(Date.now() + days * DAY).toISOString();
 
-const topic = (id: string, title: string, parentId: string | null, description = ""): Topic => ({
+const topic = (id: string, title: string, description = ""): Topic => ({
   id,
   title,
   description,
-  parentId,
   createdAt: at(-30),
 });
 
@@ -30,27 +29,18 @@ function seed() {
   const settings: Settings = { defaultMethod: "standard", strictOrder: false };
 
   const topics: Topic[] = [
-    topic("math", "Math", null),
-    topic("arithmetic", "Arithmetic", "math"),
-    topic("multiplication", "Multiplication", "arithmetic", "Repeated addition and the times tables."),
-    topic("division", "Division", "arithmetic", "Splitting into equal groups, remainders, long division."),
-    topic("algebra", "Algebra", "math", "Variables, expressions, and solving equations."),
-    topic("calculus", "Calculus", "math", "The mathematics of change and accumulation."),
-    topic("limits", "Limits", "calculus", "What a function approaches as its input approaches a value."),
-    topic(
-      "derivatives",
-      "Derivatives",
-      "calculus",
-      "The instantaneous rate of change of a function, and the rules for finding it.",
-    ),
-    topic("integrals", "Integrals", "calculus", "Accumulation and area under a curve."),
-    topic("physics", "Physics", null),
-    topic("mechanics", "Mechanics", "physics", "Motion, forces, and energy."),
+    topic("multiplication", "Multiplication", "Repeated addition and the times tables."),
+    topic("division", "Division", "Splitting into equal groups, remainders, long division."),
+    topic("algebra", "Algebra", "Variables, expressions, and solving equations."),
+    topic("limits", "Limits", "What a function approaches as its input approaches a value."),
+    topic("derivatives", "Derivatives", "The instantaneous rate of change of a function, and the rules for finding it."),
+    topic("integrals", "Integrals", "Accumulation and area under a curve."),
+    topic("mechanics", "Mechanics", "Motion, forces, and energy."),
   ];
 
   const links: TopicLink[] = [
     { fromTopicId: "multiplication", toTopicId: "division", kind: "prerequisite" },
-    { fromTopicId: "algebra", toTopicId: "calculus", kind: "prerequisite" },
+    { fromTopicId: "algebra", toTopicId: "limits", kind: "prerequisite" },
     { fromTopicId: "limits", toTopicId: "derivatives", kind: "prerequisite" },
     { fromTopicId: "derivatives", toTopicId: "integrals", kind: "prerequisite" },
     { fromTopicId: "derivatives", toTopicId: "mechanics", kind: "related" },
@@ -59,6 +49,7 @@ function seed() {
   const clusters: Cluster[] = [
     { id: "exam", name: "calculus-exam", topicIds: ["limits", "derivatives", "integrals"] },
     { id: "basics", name: "foundations", topicIds: ["multiplication", "division", "algebra"] },
+    { id: "physics", name: "physics", topicIds: ["mechanics"] },
   ];
 
   const cycles: LearningCycle[] = [
@@ -253,8 +244,11 @@ export const mockApi: ApiClient = {
   async getTopic(id) {
     return topics.find((t) => t.id === id) ?? null;
   },
-  async createTopic(title, parentId) {
-    const created = topic(newId("t"), title, parentId);
+  async createTopic(title) {
+    if (topics.some((t) => t.title.toLowerCase() === title.toLowerCase())) {
+      throw new Error(`A topic named "${title}" already exists.`);
+    }
+    const created = topic(newId("t"), title);
     topics.push(created);
     return created;
   },

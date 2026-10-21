@@ -1,20 +1,7 @@
 import type { Topic } from "@/lib/api";
 
-export function ancestorsOf(topic: Topic, topics: Topic[]): Topic[] {
-  const ancestors: Topic[] = [];
-  for (let p = topic.parentId; p; ) {
-    const parent = topics.find((t) => t.id === p);
-    if (!parent) break;
-    ancestors.unshift(parent);
-    p = parent.parentId;
-  }
-  return ancestors;
-}
-
-export function pathLabel(topic: Topic, topics: Topic[]): string {
-  return ancestorsOf(topic, topics)
-    .map((t) => t.title)
-    .join(" › ");
+export function sortByTitle(topics: Topic[]): Topic[] {
+  return topics.toSorted((a, b) => a.title.localeCompare(b.title));
 }
 
 // "#Calculus Exam" -> "calculus-exam"

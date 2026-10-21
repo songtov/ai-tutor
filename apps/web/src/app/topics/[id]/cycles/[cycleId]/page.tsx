@@ -38,7 +38,6 @@ async function StagePanel({ cycle, topic, settings }: { cycle: LearningCycle; to
       return (
         <NextTopicPanel
           cycle={cycle}
-          parentId={topic.parentId}
           defaultMethod={settings.defaultMethod}
           suggestions={await api.suggestNextTopics(topic.id)}
         />

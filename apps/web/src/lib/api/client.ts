@@ -19,7 +19,7 @@ export interface ApiClient {
 
   listTopics(): Promise<Topic[]>;
   getTopic(id: string): Promise<Topic | null>;
-  createTopic(title: string, parentId: string | null): Promise<Topic>;
+  createTopic(title: string): Promise<Topic>;
   listLinks(topicId: string): Promise<TopicLink[]>;
   addLink(link: TopicLink): Promise<TopicLink>;
   listClusters(): Promise<Cluster[]>;

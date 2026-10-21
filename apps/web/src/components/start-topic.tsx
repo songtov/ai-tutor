@@ -7,7 +7,7 @@ import { createTopicAndStart } from "@/app/actions";
 import type { Topic } from "@/lib/api";
 import { toTagName } from "@/lib/topics";
 
-export type TopicOption = Topic & { path: string };
+export type TopicOption = Topic & { tags: string[] };
 
 function Chip({ label, onRemove }: { label: string; onRemove: () => void }) {
   return (
@@ -63,7 +63,7 @@ function TopicMultiPicker({
             .filter((o) => !selected.includes(o.id))
             .map((o) => (
               <option key={o.id} value={o.id}>
-                {o.path ? `${o.path} › ${o.title}` : o.title}
+                {o.title}
               </option>
             ))}
         </select>
@@ -74,7 +74,6 @@ function TopicMultiPicker({
 
 export function StartTopic({ topics, tagNames }: { topics: TopicOption[]; tagNames: string[] }) {
   const [query, setQuery] = useState("");
-  const [parentId, setParentId] = useState("");
   const [learnFirstIds, setLearnFirstIds] = useState<string[]>([]);
   const [relatedIds, setRelatedIds] = useState<string[]>([]);
   const [tags, setTags] = useState<string[]>([]);
@@ -120,7 +119,9 @@ export function StartTopic({ topics, tagNames }: { topics: TopicOption[]; tagNam
                 >
                   <span>
                     <span className="font-semibold">{t.title}</span>
-                    {t.path && <span className="ml-2 text-sm text-muted">{t.path}</span>}
+                    {t.tags.length > 0 && (
+                      <span className="ml-2 text-sm text-muted">{t.tags.map((tag) => `#${tag}`).join(" ")}</span>
+                    )}
                   </span>
                   <span className="text-sm font-semibold text-pen">Continue</span>
                 </Link>
@@ -137,7 +138,6 @@ export function StartTopic({ topics, tagNames }: { topics: TopicOption[]; tagNam
             startTransition(() =>
               createTopicAndStart({
                 title,
-                parentId: parentId || null,
                 learnFirstIds,
                 relatedIds,
                 tags: tagDraft.trim() ? [...tags, toTagName(tagDraft)] : tags,
@@ -149,25 +149,6 @@ export function StartTopic({ topics, tagNames }: { topics: TopicOption[]; tagNam
           <h2 className="font-semibold">
             Start <span className="font-serif text-pen">{title}</span> as a new topic
           </h2>
-
-          <div className="flex flex-col gap-2">
-            <label htmlFor="parent" className="text-sm text-muted">
-              Put under
-            </label>
-            <select
-              id="parent"
-              value={parentId}
-              onChange={(e) => setParentId(e.target.value)}
-              className="self-start rounded-md border border-rule bg-paper px-2 py-1 text-sm"
-            >
-              <option value="">Nothing (a new top-level topic)</option>
-              {topics.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.path ? `${t.path} › ${t.title}` : t.title}
-                </option>
-              ))}
-            </select>
-          </div>
 
           <div className="grid gap-5 sm:grid-cols-2">
             <TopicMultiPicker
