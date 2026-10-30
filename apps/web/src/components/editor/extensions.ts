@@ -2,7 +2,7 @@ import { Extension } from "@tiptap/react";
 import { Plugin } from "@tiptap/pm/state";
 import { Decoration, DecorationSet } from "@tiptap/pm/view";
 
-import { LINK_PATTERN, TAG_PATTERN } from "@/lib/notes";
+import { LINK_PATTERN, parseTags, TAG_PATTERN } from "@/lib/notes";
 
 const BLOCK_TYPES = ["paragraph", "heading", "bulletList", "orderedList", "blockquote"];
 
@@ -49,6 +49,23 @@ export const BlockId = Extension.create({
   },
 });
 
+function tagChips(tags: string[], onOpenTag: (tag: string) => void): HTMLElement {
+  const row = document.createElement("div");
+  row.className = "note-tags";
+  row.contentEditable = "false";
+  for (const tag of tags) {
+    const chip = document.createElement("button");
+    chip.type = "button";
+    chip.className = "hashtag";
+    chip.textContent = `#${tag}`;
+    chip.title = "See notes with this hashtag";
+    chip.addEventListener("mousedown", (e) => e.preventDefault());
+    chip.addEventListener("click", () => onOpenTag(tag));
+    row.append(chip);
+  }
+  return row;
+}
+
 export type NoteMarksOptions = {
   // Lowercased titles of existing notes.
   known: Set<string>;
@@ -92,6 +109,17 @@ export const NoteMarks = Extension.create<NoteMarksOptions>({
                 );
               }
             });
+            // The note's hashtags, as chips under the title (the first line).
+            const tags = parseTags(state.doc.textBetween(0, state.doc.content.size, "\n"));
+            if (tags.length && state.doc.firstChild) {
+              decorations.push(
+                Decoration.widget(state.doc.firstChild.nodeSize, () => tagChips(tags, onOpenTag), {
+                  key: `tags:${tags.join(",")}`,
+                  side: -1,
+                  ignoreSelection: true,
+                }),
+              );
+            }
             return DecorationSet.create(state.doc, decorations);
           },
           handleClick(_view, _pos, event) {
