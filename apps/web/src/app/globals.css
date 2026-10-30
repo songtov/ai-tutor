@@ -1,26 +1,195 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@custom-variant dark (@media (prefers-color-scheme: dark));
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+:root {
+  --paper: #f6f8fb;
+  --surface: #ffffff;
+  --ink: #1b2238;
+  --muted: #5b647d;
+  --rule: #dce2ec;
+  --pen: #2e46c8;
+  --pen-soft: #e6eafb;
+  --highlight: #ffe45c;
+  --on-highlight: #1b2238;
+  /* Hashtag colors in the graph, in fixed order (validated: dataviz all-pairs, 3 slots). */
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+  --series-3: #1baf7a;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --paper: #12161f;
+    --surface: #1a1f2b;
+    --ink: #e4e8f1;
+    --muted: #9aa3b8;
+    --rule: #2c3342;
+    --pen: #8fa2ff;
+    --pen-soft: #232a45;
+    --highlight: #e2c640;
+    --on-highlight: #12161f;
+    --series-1: #3987e5;
+    --series-2: #d95926;
+    --series-3: #199e70;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@theme inline {
+  --color-paper: var(--paper);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-rule: var(--rule);
+  --color-pen: var(--pen);
+  --color-pen-soft: var(--pen-soft);
+  --color-highlight: var(--highlight);
+  --color-on-highlight: var(--on-highlight);
+  --font-sans: var(--font-atkinson);
+  --font-serif: var(--font-literata);
+}
+
+@layer base {
+  body {
+    background: var(--paper);
+    color: var(--ink);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--pen);
+    outline-offset: 2px;
+  }
+}
+
+/* A highlighter stroke: marks gaps and anything due. */
+.highlight {
+  background-image: linear-gradient(
+    to bottom,
+    transparent 12%,
+    var(--highlight) 12%,
+    var(--highlight) 90%,
+    transparent 90%
+  );
+  color: var(--on-highlight);
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  padding-inline: 0.2em;
+}
+
+/* Ruled paper for the blank quiz. Line height must match --line. */
+.ruled {
+  --line: 2rem;
+  line-height: var(--line);
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent calc(var(--line) - 1px),
+    var(--rule) calc(var(--line) - 1px),
+    var(--rule) var(--line)
+  );
+  background-attachment: local;
+  background-position: 0 0.4rem;
+}
+
+/* The note editor: a plain document, like Docs or Obsidian. */
+.note-editor {
+  font-family: var(--font-literata);
+  font-size: 1.0625rem;
+  line-height: 1.75;
+  outline: none;
+  min-height: 50vh;
+  padding-right: 1rem;
+}
+@media (min-width: 768px) {
+  .note-editor {
+    font-size: 1.125rem;
+    padding-right: 2rem;
+  }
+}
+.note-editor > * + * {
+  margin-top: 0.9em;
+}
+/* The first line is the note's title. */
+.note-editor > :first-child {
+  font-size: 1.9em;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+.note-editor > :first-child:has(> br.ProseMirror-trailingBreak:only-child)::before {
+  content: "Title";
+}
+.note-editor > :nth-child(2):last-child:has(> br.ProseMirror-trailingBreak:only-child)::before {
+  content: "Write what you understand. #tag a note, [[link]] another.";
+}
+.note-editor > :is(:first-child, :nth-child(2):last-child)::before {
+  color: var(--muted);
+  opacity: 0.7;
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+.note-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.5em;
+  font-size: 0.9rem;
+}
+.note-tags .hashtag {
+  cursor: pointer;
+}
+.note-editor h1,
+.note-editor h2,
+.note-editor h3 {
+  font-weight: 600;
+  line-height: 1.3;
+  margin-top: 1.4em;
+}
+.note-editor h1 {
+  font-size: 1.6em;
+}
+.note-editor h2 {
+  font-size: 1.3em;
+}
+.note-editor h3 {
+  font-size: 1.1em;
+}
+.note-editor ul,
+.note-editor ol {
+  padding-left: 1.4em;
+}
+.note-editor ul {
+  list-style: disc;
+}
+.note-editor ol {
+  list-style: decimal;
+}
+.note-editor li + li {
+  margin-top: 0.25em;
+}
+/* "Explain in your own words" prompts and quotes. */
+.note-editor blockquote {
+  border-left: 4px solid var(--highlight);
+  padding: 0.25em 0 0.25em 1em;
+  font-family: var(--font-atkinson);
+  font-size: 0.95em;
+}
+.note-editor .wikilink {
+  color: var(--pen);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--pen) 40%, transparent);
+  text-underline-offset: 4px;
+}
+.note-editor .wikilink-new {
+  text-decoration-style: dashed;
+  opacity: 0.75;
+}
+.note-editor .hashtag {
+  color: var(--pen);
+  background: var(--pen-soft);
+  border-radius: 0.25rem;
+  padding: 0 0.25em;
+  font-family: var(--font-atkinson);
+  font-size: 0.85em;
 }

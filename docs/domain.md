@@ -4,20 +4,19 @@ The core concepts of ai-tutor, how they relate, and the rules they must keep. Th
 
 ## Overview
 
+ai-tutor is note-first. Each topic is one note that the learner writes. Everything else (tests, feedback, materials, questions, reviews) hangs off that note.
+
 ```mermaid
 erDiagram
     Learner ||--o{ Topic : owns
-    Learner ||--o{ Cluster : owns
-    Topic ||--o{ Topic : "parent of"
-    Topic ||--o{ TopicLink : "from / to"
-    Cluster }o--o{ Topic : groups
-    Topic ||--o{ LearningCycle : has
-    Topic ||--o{ Note : has
-    Topic ||--o| ReviewSchedule : has
-    LearningCycle ||--o{ ChatMessage : has
-    LearningCycle ||--o{ Material : has
-    LearningCycle ||--o{ Attempt : has
+    Topic ||--o{ NoteRevision : "earlier versions"
+    Topic ||--o{ TopicLink : "links to"
+    Topic }o--o{ Hashtag : "tagged with"
+    Topic ||--o{ Attempt : "tested by"
     Attempt ||--o| Feedback : "assessed by"
+    Topic ||--o{ Material : has
+    Topic ||--o{ Question : has
+    Topic ||--o| ReviewSchedule : has
 ```
 
 ## Learner
@@ -25,121 +24,94 @@ erDiagram
 The person learning. Local mode has a single default learner; remote mode has one per account (#13). Every record below is owned by exactly one learner, through its topic.
 
 - `id`
-- `settings.default_method`: the learning method new cycles start with (see [Learning methods](#learning-methods)).
-- `settings.strict_order`: whether cycles follow the stage order strictly (see [LearningCycle](#learningcycle)).
 
 ## Topic
 
-Anything the learner wants to learn, as broad or narrow as they like.
+Anything the learner wants to learn, as broad or narrow as they like. A topic is a note: the learner writes it in their own words.
 
-- `id`, `owner_id`, `title`, `description`, `created_at`
-- `parent_id`: optional. Topics form a tree of any depth (Math › Calculus › Derivatives). The tree is for organizing; it says nothing about learning order.
+- `id`, `owner_id`, `title`, `body` (Markdown), `created_at`, `updated_at`
+- Topics are flat, like notes in Obsidian: no parent and no folders. Structure comes from links and hashtags in the body.
+- `title` is unique per learner, ignoring case, because it is the note's file name and wikilink target in the vault.
+- The AI never writes `body`. It can insert a prompt for the learner to fill in (see [Material](#material)), but the content is the learner's.
+
+### NoteRevision
+
+The previous `body` of a topic, kept on every save that changes it, so editing a note never loses what was there.
+
+- `id`, `topic_id`, `body`, `created_at`
 
 ### TopicLink
 
-A directed edge between two topics of the same learner. Links may cross branches of the tree.
+A link from one note to another, written as `[[Title]]` in the body.
 
-- `from_topic_id`, `to_topic_id`, `kind`: `prerequisite` or `related`
-- `prerequisite`: *from* must be learned before *to* (Algebra → Calculus).
-- `related`: symmetric. Stored once; read in both directions.
+- `from_topic_id`, `to_title`, `to_topic_id` (empty while unresolved)
+- Parsed from the body on every save. The learner edits links by editing text, not through a separate form.
+- A link to a title with no topic yet stays unresolved. Following it creates the topic.
+- Read in both directions: a note shows its links and the notes that link to it (backlinks).
 
-### Cluster
+### Hashtag
 
-A named group of topics, managed by the learner like a tag. A topic can belong to any number of clusters, and a cluster can span branches of the tree.
+A name that groups notes, written as `#calculus-exam` in the body. In the vault it becomes an Obsidian tag.
 
-- `id`, `owner_id`, `name`
-- members: a set of topic ids
+- `owner_id`, `name` (lowercase, words joined with `-`)
+- Parsed from the body on every save, like links.
+- A hashtag can be reviewed as a group.
 
-## LearningCycle
+## Study records
 
-One pass through a topic. A topic can have many cycles over time: the first time it is learned, a relearn, a review. Old cycles are kept so the learner can see how their understanding changed.
-
-- `id`, `topic_id`, `started_at`, `completed_at`
-- `stages`: the ordered list of stages for this cycle, copied from the learning method when the cycle starts. Changing settings later does not change existing cycles.
-- `current_index`: position in `stages`.
-- `skipped`: indexes of stages the learner skipped.
-
-Moving between stages depends on `settings.strict_order`:
-
-- Off (default): the learner may move forward or back freely.
-- On: the learner moves through stages in order. They can still skip the current stage; the skip is recorded in `skipped`.
-
-Stages:
-
-| Stage | Produces |
-| --- | --- |
-| `chat` | ChatMessage |
-| `materials` | Material |
-| `quiz` | Attempt |
-| `feedback` | Feedback |
-| `notes` | Note |
-| `review` | ReviewSchedule update |
-| `next_topic` | a suggested Topic (created only if the learner accepts it) |
-
-A stage may appear more than once in `stages` (for example, quiz before and after materials).
-
-## Artifacts
-
-Everything the learner produces or picks is an artifact. Artifacts are never deleted by the system.
-
-### ChatMessage
-
-- `id`, `cycle_id`, `role` (`learner` or `tutor`), `content`, `created_at`
-
-### Material
-
-A learning resource found during the cycle.
-
-- `id`, `cycle_id`, `kind` (`video`, `article`, `other`), `title`, `url`, `source`
-- `picked`: whether the learner chose to study it
-- `created_at`
+Everything the learner produces or picks is kept. The system never deletes these.
 
 ### Attempt
 
-The learner's answer to a blank quiz: what they can recall, from memory.
+A Test me: the note is hidden and the learner writes what they remember.
 
-- `id`, `cycle_id`, `prompt`, `created_at`
+- `id`, `topic_id`, `note_revision_id`: the note as it was when the test started. Feedback compares against this version, not a later edit.
 - `answer_text`: optional
 - `photo_keys`: storage keys of uploaded photos (handwritten work). Files live behind the storage port.
 - At least one of `answer_text` or `photo_keys` is present.
+- `created_at`
 
 ### Feedback
 
-The assessment of one attempt.
+The AI's assessment of one attempt against the note.
 
 - `id`, `attempt_id`, `created_at`
-- `known`: what the learner showed they understand
-- `missing`: gaps and misconceptions
+- `known`: what the learner recalled correctly
+- `missing`: what the note has and the answer lacked, plus misconceptions
 - `next_questions`: questions the learner should now be able to answer
 
-### Note
+The learner then fixes the note themselves. Feedback suggests; it does not edit the note.
 
-The learner's progress record on a topic. Notes belong to the topic, not the cycle, so they accumulate across cycles.
+### Material
 
-- `id`, `topic_id`, `cycle_id` (optional: the cycle that produced it), `body`, `created_at`, `updated_at`
+A video, article, or other resource for a topic.
+
+- `id`, `topic_id`, `kind` (`video`, `article`, `other`), `title`, `url`, `source`, `created_at`
+- `found_for`: optional. The gap the search aimed at, such as a `missing` item from the last feedback.
+- `saved`: whether the learner kept it. Results they didn't save are kept too, unsaved.
+- `summary`: points the AI extracted from a saved material, each with an optional timestamp for videos.
+
+A summary point never goes into the note as text. "Add to note" inserts a prompt, such as `Explain in your own words: the chain rule ([source](url))`, which the learner then writes.
+
+### Question
+
+A question the learner asked about part of their note.
+
+- `id`, `topic_id`, `quote`: the selected text (optional), `question`, `answer`, `created_at`
+- The answer prefers a hint or a question back before a full explanation.
 
 ### ReviewSchedule
 
-When the topic should be recalled again. One per topic.
+When the note should be recalled again. One per topic.
 
 - `topic_id`, `due_at`, `interval_days`, `last_reviewed_at`
-- Doing a review starts a new LearningCycle with the `review` method. Its result updates the schedule. The algorithm is decided in #10.
-
-## Learning methods
-
-A learning method is a named stage order. The learner picks a default in settings and can override it per cycle. Methods are presets defined in code; learners don't define their own.
-
-| Method | Stages | Why |
-| --- | --- | --- |
-| `standard` | chat → materials → quiz → feedback → notes → review → next_topic | The default cycle. |
-| `pretest` | chat → quiz → feedback → materials → quiz → feedback → notes → review → next_topic | Trying to recall before studying improves later learning (pretesting effect), and shows the learner what they already know. |
-| `review` | quiz → feedback → notes → review | Spaced review of a topic already learned. |
+- A review is a Test me on a due note. Its result updates the schedule. The algorithm is decided in #10.
 
 ## Markdown vault
 
-Notes and study history are also written as Markdown files, so the learner can browse them on their own in Obsidian or any editor.
+Notes and study history are also written as Markdown files, so the learner can open them in Obsidian or any editor.
 
-- The database is the source of truth. The vault is a one-way copy, rewritten whenever an artifact changes. Edits made in the vault are not read back.
+- The database is the source of truth. The vault is a one-way copy, rewritten whenever a record changes. Edits made in the vault are not read back.
 - Local mode writes the vault to a folder on disk. Remote mode offers it as a download.
 - Files are written through a port, like database and storage.
 
@@ -147,32 +119,31 @@ Layout:
 
 ```
 vault/
-└── Math/
-    ├── Math.md
-    └── Calculus/
-        ├── Calculus.md
-        └── cycles/
-            └── 2026-10-20 standard.md
+├── Limits.md
+├── Derivatives.md
+└── study/
+    ├── Limits (study).md
+    └── Derivatives (study).md
 ```
 
-- **Topic file** (`<Topic>.md`): description and notes. Frontmatter holds the clusters as `tags`. Links become wikilinks: `Prerequisites: [[Algebra]]`, `Related: [[Mechanics]]`.
-- **Cycle file** (`cycles/<date> <method>.md`): the chat, the materials (picked ones marked), each attempt with its photos embedded, and its feedback, in stage order.
+- **Note file** (`<Title>.md`): the note body exactly as written, so its `[[links]]` and `#hashtags` work in Obsidian as they are.
+- **Study file** (`study/<Title> (study).md`): `Note: [[Derivatives]]`, then each attempt with its photos embedded and its feedback, saved materials with summaries, and questions, newest first.
 
 ## Rules
 
-1. Every learning record belongs to exactly one topic: directly (Note, ReviewSchedule) or through its cycle.
-2. A topic's parent, links, and clusters belong to the same learner.
-3. A topic is not its own ancestor: the tree has no cycles.
-4. `prerequisite` links form a DAG: no topic is, directly or indirectly, its own prerequisite. `related` links may form loops.
-5. No duplicate links: at most one link of each kind between two topics.
-6. Artifacts are never discarded. Deleting a topic is not supported until we decide how to archive it.
-7. A cycle's `stages` never change after it starts.
+1. Every study record belongs to exactly one topic.
+2. Links and hashtags only join topics of the same learner.
+3. Topic titles are unique per learner, ignoring case.
+4. A topic's links and hashtags always match its body: they are parsed from it on every save.
+5. Records are never discarded. Editing a note keeps the previous version as a NoteRevision.
+6. An attempt is assessed against the note revision it was taken from.
+7. The AI never writes a note's content. It may insert prompts that the learner fills in.
 
 ## Open questions
 
-- **Deleting and moving topics.** Archive instead of delete? What happens to children and links when a topic is archived or moved?
-- **Note edits.** Notes are editable. Do we keep previous versions to satisfy "nothing vanishes"?
+- **Deleting and renaming topics.** Archive instead of delete? Renaming changes the vault file name and the `[[links]]` in other notes; rewrite them automatically?
+- **Hiding the note during Test me.** How strict? Hide it in the app only, or also block other tabs?
 - **Confidence rating.** Ask the learner how confident they are before showing feedback, to train self-assessment?
 - **Review algorithm.** Fixed intervals, SM-2, or FSRS (#10).
+- **Material search.** Which sources and APIs (YouTube, web search), and how to rank by the learner's gaps.
 - **Two-way vault sync.** Read edits made in Obsidian back into the database?
-- **Duplicate topic names.** Topic files are named by title, so two sibling topics with the same title would collide.
